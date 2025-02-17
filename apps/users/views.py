@@ -6,6 +6,7 @@ from django.core.cache import cache
 from django.contrib.auth import get_user_model
 from rest_framework.authtoken.models import Token
 from rest_framework_simplejwt.tokens import RefreshToken
+from drf_yasg.utils import swagger_auto_schema
 
 from .serializers import *
 import random
@@ -16,6 +17,13 @@ User = get_user_model()
 class SendOTPView(APIView):
     throttle_classes = [AnonRateThrottle]  # محدودیت نرخ برای کاربران ناشناس
 
+    @swagger_auto_schema(
+        operation_description="ersal shomare",
+        request_body=PhoneSerializer,  # مشخص کردن body درخواست
+        responses={
+            200: "OK",
+        }
+    )
     def post(self, request):
         serializer = PhoneSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -35,7 +43,13 @@ class SendOTPView(APIView):
 
 class VerifyOTPView(APIView):
     throttle_classes = [AnonRateThrottle]  # محدودیت نرخ برای کاربران ناشناس
-
+    @swagger_auto_schema(
+        operation_description="ersal code",
+        request_body=VerifyOTPSerializer,  # مشخص کردن body درخواست
+        responses={
+            200: "OK",
+        }
+    )
     def post(self, request):
         serializer = VerifyOTPSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -43,7 +57,9 @@ class VerifyOTPView(APIView):
         otp = serializer.validated_data['otp']
 
         cached_otp = cache.get(phone)
-
+        print(otp)
+        print(phone)
+        print(cached_otp)
         if not cached_otp or cached_otp != otp:
             return Response(
                 {'error': 'Invalid OTP'},
@@ -54,7 +70,7 @@ class VerifyOTPView(APIView):
         cache.delete(phone)
 
         try:
-            user = User.objects.get(phone_number=phone)
+            user = User.objects.get(phone=phone)
             refresh = RefreshToken.for_user(user)  # استفاده از Simple JWT
             return Response({
                 'refresh': str(refresh),
@@ -69,7 +85,13 @@ class VerifyOTPView(APIView):
 
 class RegisterView(APIView):
     throttle_classes = [AnonRateThrottle]  # محدودیت نرخ برای کاربران ناشناس
-
+    @swagger_auto_schema(
+        operation_description="ersal fullname",
+        request_body=RegisterSerializer,  # مشخص کردن body درخواست
+        responses={
+            200: "OK",
+        }
+    )
     def post(self, request):
         serializer = RegisterSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)

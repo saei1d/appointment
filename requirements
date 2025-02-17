@@ -1,0 +1,4 @@
+django_redis
+django
+rest_framework
+drf-yasg

@@ -16,11 +16,13 @@ class UserManager(BaseUserManager):
 class User(AbstractBaseUser):
     phone = models.CharField(max_length=15, unique=True)
     fullname = models.CharField(max_length=50)
+    city = models.CharField(max_length=50, blank=True, null=True)
+    user_type = models.CharField(max_length=50,default='user')
     email = models.EmailField(unique=True, null=True, blank=True)
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    updated_at = models.DateTimeField(auto_now_add=True)
 
     objects = UserManager()
     USERNAME_FIELD = 'phone'

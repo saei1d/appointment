@@ -28,7 +28,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
-AUTH_USER_MODEL = 'your_app_name.User'
+AUTH_USER_MODEL = 'users.User'
 
 # Application definition
 
@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework_simplejwt',
     'django_redis',
+    'drf_yasg',
 ]
 
 MIDDLEWARE = [

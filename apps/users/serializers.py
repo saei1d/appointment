@@ -11,10 +11,18 @@ class PhoneSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Phone number must be entered in the format: 09XXXXXXXXXXXXX")
         return value
 
+    class Meta:
+        model = User  # مدل مربوطه را اینجا قرار دهید
+        fields = ['phone']  # فیلدهایی که باید سریالایز شوند
+
 
 class VerifyOTPSerializer(serializers.ModelSerializer):
     phone = serializers.CharField()
     otp = serializers.CharField(min_length=4, max_length=4)
+
+    class Meta:
+        model = User  # مدل مربوطه را اینجا قرار دهید
+        fields = ['phone', 'otp']  # فیلدهایی که باید سریالایز شوند
 
 
 class RegisterSerializer(serializers.ModelSerializer):
