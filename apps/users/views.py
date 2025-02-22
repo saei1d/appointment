@@ -43,6 +43,7 @@ class SendOTPView(APIView):
 
 class VerifyOTPView(APIView):
     throttle_classes = [AnonRateThrottle]  # محدودیت نرخ برای کاربران ناشناس
+
     @swagger_auto_schema(
         operation_description="ersal code",
         request_body=VerifyOTPSerializer,  # مشخص کردن body درخواست
@@ -85,6 +86,7 @@ class VerifyOTPView(APIView):
 
 class RegisterView(APIView):
     throttle_classes = [AnonRateThrottle]  # محدودیت نرخ برای کاربران ناشناس
+
     @swagger_auto_schema(
         operation_description="ersal fullname",
         request_body=RegisterSerializer,  # مشخص کردن body درخواست

@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     'django_redis',
     'drf_yasg',
+    'apps.provider',
 ]
 
 MIDDLEWARE = [
@@ -161,3 +162,21 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+
+
+LOGGING = {
+    'version': 1,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'loggers': {
+        'django.db.backends': {
+            'level': 'DEBUG',
+            'handlers': ['console'],
+        },
+    },
+}
