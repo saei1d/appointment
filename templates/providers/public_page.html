@@ -1,0 +1,8 @@
+{% extends 'base.html' %}{% block content %}
+<section class="rounded-3xl bg-white shadow overflow-hidden">
+  <div class="h-40" style="background: {{ provider.theme_color }}"></div>
+  <div class="p-5"><h1 class="text-3xl font-bold">{{ provider.user.fullname }}</h1><p class="mt-2">{{ provider.bio }}</p><p class="mt-2 text-sm">{{ provider.address }}</p></div>
+</section>
+<h2 class="text-xl font-bold my-4">خدمات</h2>
+<div class="grid md:grid-cols-2 gap-3">{% for service in services %}<div class="bg-white rounded-2xl p-4 shadow"><h3 class="font-bold">{{ service.name }}</h3><p>{{ service.description }}</p><p class="mt-2">{{ service.price }} تومان - {{ service.duration }} دقیقه</p><a class="inline-block mt-3 bg-pink-600 text-white px-4 py-2 rounded-xl" href="{% url 'book_service' provider.slug service.id %}">رزرو</a></div>{% endfor %}</div>
+{% endblock %}

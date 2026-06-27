@@ -1,16 +1,11 @@
 from django.contrib import admin
-from .models import WorkingCalendar, Appointment
+from .models import Appointment, SpecialWorkingHour, WorkingHour
 
-
-@admin.register(WorkingCalendar)
-class WorkingCalendarAdmin(admin.ModelAdmin):
-    list_display = ('id', 'provider', 'date', 'start_time', 'end_time', 'is_available')
-    list_filter = ('date', 'is_available')
-    search_fields = ('provider__user__fullname',)
-
+admin.site.register(WorkingHour)
+admin.site.register(SpecialWorkingHour)
 
 @admin.register(Appointment)
 class AppointmentAdmin(admin.ModelAdmin):
-    list_display = ('id', 'user', 'provider', 'service', 'date', 'start_time', 'end_time', 'status', 'deposit_paid')
-    list_filter = ('status', 'deposit_paid', 'date')
-    search_fields = ('user__fullname', 'provider__user__fullname', 'service__name')
+    list_display = ('customer', 'provider', 'service', 'date', 'start_time', 'end_time', 'status', 'deposit_paid')
+    list_filter = ('status', 'date', 'deposit_paid')
+    search_fields = ('customer__fullname', 'provider__user__fullname', 'service__name')
