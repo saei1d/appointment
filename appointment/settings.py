@@ -80,3 +80,6 @@ SESSION_COOKIE_SECURE = os.getenv('DJANGO_SECURE_SSL', '0') == '1'
 CSRF_COOKIE_SECURE = SESSION_COOKIE_SECURE
 SECURE_SSL_REDIRECT = SESSION_COOKIE_SECURE
 SECURE_HSTS_SECONDS = int(os.getenv('DJANGO_HSTS_SECONDS', '0'))
+
+# Staff admins can manage editorial/support areas; superusers retain complete access.
+ADMIN_STAFF_ALLOWED_APPS = {'blog', 'support'}

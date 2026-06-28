@@ -28,6 +28,8 @@ class Subscription(models.Model):
     start_date = models.DateField(default=timezone.localdate)
     end_date = models.DateField()
     is_active = models.BooleanField(default=True)
+    auto_renew = models.BooleanField(default=False)
+    renewal_price_snapshot = models.DecimalField(max_digits=12, decimal_places=0, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -38,6 +40,14 @@ class Subscription(models.Model):
     def is_current(self):
         today = timezone.localdate()
         return self.is_active and self.start_date <= today <= self.end_date
+
+    @property
+    def days_remaining(self):
+        return max((self.end_date - timezone.localdate()).days, 0)
+
+    @property
+    def should_show_renewal(self):
+        return self.is_current and self.days_remaining <= 3
 
     def __str__(self):
         return f'{self.provider} - {self.plan}'
