@@ -1,7 +1,44 @@
 from django.conf import settings
-from django.core.validators import MinValueValidator
+from django.core.validators import MinLengthValidator, MinValueValidator
 from django.db import models
 from django.utils.text import slugify
+
+
+class ServiceCategory(models.Model):
+    name = models.CharField(max_length=100, unique=True)
+    slug = models.SlugField(max_length=90, unique=True)
+    description = models.TextField(blank=True)
+    icon = models.CharField(max_length=20, default='✨')
+    image = models.ImageField(upload_to='service_categories/', blank=True, null=True)
+    is_active = models.BooleanField(default=True)
+    sort_order = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        ordering = ('sort_order', 'name')
+        verbose_name_plural = 'Service categories'
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(self.name, allow_unicode=True)[:80]
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return self.name
+
+
+class ServiceTemplate(models.Model):
+    category = models.ForeignKey(ServiceCategory, on_delete=models.PROTECT, related_name='templates')
+    name = models.CharField(max_length=120)
+    description = models.TextField(blank=True)
+    suggested_duration = models.PositiveIntegerField(default=60)
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ('category__sort_order', 'category__name', 'name')
+        unique_together = ('category', 'name')
+
+    def __str__(self):
+        return f'{self.category} - {self.name}'
 
 
 class Provider(models.Model):
@@ -11,7 +48,8 @@ class Provider(models.Model):
         ROUNDED = 'rounded', 'Rounded'
 
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='provider_profile')
-    slug = models.SlugField(max_length=80, unique=True, help_text='Public booking URL slug')
+    slug = models.SlugField(max_length=80, unique=True, validators=[MinLengthValidator(5)], help_text='Public booking URL slug')
+    city = models.CharField(max_length=80, default='تهران', db_index=True)
     bio = models.TextField(blank=True)
     avatar = models.ImageField(upload_to='providers/avatars/', blank=True, null=True)
     cover_image = models.ImageField(upload_to='providers/covers/', blank=True, null=True)
@@ -43,6 +81,7 @@ class Provider(models.Model):
 
 class Service(models.Model):
     provider = models.ForeignKey(Provider, on_delete=models.CASCADE, related_name='services')
+    template = models.ForeignKey(ServiceTemplate, on_delete=models.PROTECT, related_name='provider_services', null=True, blank=True)
     name = models.CharField(max_length=120)
     description = models.TextField(blank=True)
     price = models.DecimalField(max_digits=12, decimal_places=0, validators=[MinValueValidator(0)])
@@ -56,10 +95,19 @@ class Service(models.Model):
     class Meta:
         ordering = ('name',)
 
+    @property
+    def category(self):
+        return self.template.category if self.template_id else None
+
     def clean(self):
         from django.core.exceptions import ValidationError
         if self.deposit_amount and self.price and self.deposit_amount > self.price:
             raise ValidationError({'deposit_amount': 'Deposit cannot exceed service price.'})
+
+    def save(self, *args, **kwargs):
+        if self.template_id and not self.name:
+            self.name = self.template.name
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.name
@@ -82,13 +130,9 @@ class GalleryItem(models.Model):
 class ProductCategory(models.Model):
     provider = models.ForeignKey(Provider, on_delete=models.CASCADE, related_name='product_categories')
     name = models.CharField(max_length=100)
-
     class Meta:
         unique_together = ('provider', 'name')
-
-    def __str__(self):
-        return self.name
-
+    def __str__(self): return self.name
 
 class Product(models.Model):
     provider = models.ForeignKey(Provider, on_delete=models.CASCADE, related_name='products')
@@ -103,6 +147,4 @@ class Product(models.Model):
     discount_starts_at = models.DateTimeField(null=True, blank=True)
     discount_ends_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return self.name
+    def __str__(self): return self.name

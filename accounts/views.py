@@ -2,6 +2,7 @@ import random
 from datetime import timedelta
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
+from django.contrib import messages
 from django.shortcuts import redirect, render
 from django.utils import timezone
 from .models import User, OTP
@@ -68,24 +69,20 @@ def provider_register(request):
         whatsapp = request.POST.get('whatsapp', '')
         address = request.POST.get('address', '')
         
-        # Update user fullname and role
+        city = request.POST.get('city', '')
+        if len(slug or '') <= 4 or Provider.objects.filter(slug=slug).exclude(user=request.user).exists():
+            messages.error(request, 'اسلاگ باید بیشتر از ۴ حرف و یکتا باشد.')
+            return render(request, 'accounts/provider_register.html')
         request.user.fullname = fullname
         request.user.role = User.Role.PROVIDER
+        request.user.city = city
         request.user.save()
-        
-        # Create provider profile
-        provider = Provider.objects.create(
+        provider, _ = Provider.objects.update_or_create(
             user=request.user,
-            slug=slug,
-            bio=bio,
-            contact_phone=contact_phone,
-            instagram=instagram,
-            telegram=telegram,
-            whatsapp=whatsapp,
-            address=address
+            defaults={'slug': slug, 'city': city, 'bio': bio, 'contact_phone': contact_phone, 'instagram': instagram, 'telegram': telegram, 'whatsapp': whatsapp, 'address': address}
         )
-        
-        return redirect('provider_dashboard')
+        messages.success(request, 'ثبت اولیه ذخیره شد؛ حالا یک پلن انتخاب کنید.')
+        return redirect('subscription_plans')
     
     return render(request, 'accounts/provider_register.html')
 
