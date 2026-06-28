@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+
+{% block title %}ورود / ثبت‌نام{% endblock %}
+
+{% block content %}
+<div class="max-w-md mx-auto bg-white rounded-lg shadow p-6">
+  <h1 class="text-2xl font-bold text-center mb-6">ورود / ثبت‌نام</h1>
+  
+  {% if error %}
+  <div class="mb-4 rounded bg-red-100 text-red-700 p-3">{{ error }}</div>
+  {% endif %}
+  
+  {% if otp_sent %}
+  <div class="mb-4 rounded bg-green-100 text-green-700 p-3">
+    کد تایید ارسال شد. (برای تست، کد در کنسول پرینت شده است)
+  </div>
+  {% endif %}
+  
+  <form method="post">
+    {% csrf_token %}
+    
+    {% if not otp_sent %}
+    <div class="mb-4">
+      <label class="block mb-2 font-medium">شماره موبایل</label>
+      <input type="tel" name="phone" value="{{ phone|default:'' }}" 
+             class="w-full border rounded-lg p-3 focus:ring-2 focus:ring-pink-500 outline-none"
+             placeholder="09123456789" required>
+    </div>
+    <button type="submit" class="w-full bg-pink-600 text-white py-3 rounded-lg hover:bg-pink-700 transition">
+      دریافت کد تایید
+    </button>
+    {% else %}
+    <input type="hidden" name="phone" value="{{ phone }}">
+    <div class="mb-4">
+      <label class="block mb-2 font-medium">کد تایید (5 رقم)</label>
+      <input type="text" name="code" maxlength="5"
+             class="w-full border rounded-lg p-3 focus:ring-2 focus:ring-pink-500 outline-none text-center text-2xl tracking-widest"
+             placeholder="12345" required autofocus>
+    </div>
+    <button type="submit" class="w-full bg-pink-600 text-white py-3 rounded-lg hover:bg-pink-700 transition">
+      تایید و ورود
+    </button>
+    <a href="{% url 'otp_auth' %}" class="block text-center mt-3 text-pink-600 hover:underline">
+      تغییر شماره
+    </a>
+    {% endif %}
+  </form>
+</div>
+{% endblock %}

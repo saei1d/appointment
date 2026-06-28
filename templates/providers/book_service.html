@@ -1,5 +1,56 @@
-{% extends 'base.html' %}{% block content %}
-<h1 class="text-2xl font-bold mb-4">رزرو {{ service.name }}</h1>
-<form method="get" class="bg-white p-4 rounded-2xl mb-4"><label>تاریخ <input class="border rounded p-2" type="date" name="date" value="{{ selected_date|date:'Y-m-d' }}"></label><button class="bg-gray-900 text-white px-4 py-2 rounded">نمایش زمان‌ها</button></form>
-{% if selected_date %}<form method="post" class="bg-white p-4 rounded-2xl">{% csrf_token %}<input type="hidden" name="date" value="{{ selected_date|date:'Y-m-d' }}"><div class="grid grid-cols-3 gap-2">{% for slot in slots %}<button name="start_time" value="{{ slot|time:'H:i:s' }}" class="border rounded-xl p-3 hover:bg-pink-100">{{ slot|time:'H:i' }}</button>{% empty %}<p>زمان آزادی وجود ندارد.</p>{% endfor %}</div><textarea name="notes" class="border rounded w-full mt-4 p-2" placeholder="توضیحات"></textarea></form>{% endif %}
+{% extends 'base.html' %}
+
+{% block title %}رزرو {{ service.name }}{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+  <h1 class="text-2xl font-bold mb-6">رزرو {{ service.name }}</h1>
+  
+  <div class="bg-white rounded-xl shadow p-6 mb-4">
+    <div class="flex items-center gap-4 mb-4">
+      <div class="flex-1">
+        <h2 class="font-bold text-lg">{{ service.name }}</h2>
+        <p class="text-gray-500">{{ service.duration }} دقیقه - {{ service.price }} تومان</p>
+      </div>
+    </div>
+  </div>
+  
+  <form method="get" class="bg-white rounded-xl shadow p-6 mb-4">
+    <label class="block mb-2 font-medium">انتخاب تاریخ</label>
+    <div class="flex gap-3">
+      <input type="date" name="date" value="{{ selected_date|date:'Y-m-d' if selected_date else '' }}"
+             class="flex-1 border rounded-lg p-3 focus:ring-2 focus:ring-pink-500 outline-none">
+      <button type="submit" class="bg-pink-600 text-white px-6 py-3 rounded-lg hover:bg-pink-700 transition">
+        نمایش زمان‌ها
+      </button>
+    </div>
+  </form>
+  
+  {% if selected_date %}
+  <form method="post" class="bg-white rounded-xl shadow p-6">
+    {% csrf_token %}
+    <input type="hidden" name="date" value="{{ selected_date|date:'Y-m-d' }}">
+    
+    <h3 class="font-bold mb-4">زمان‌های آزاد برای {{ selected_date|date:'Y/m/d' }}</h3>
+    
+    <div class="grid grid-cols-3 gap-3 mb-4">
+      {% for slot in slots %}
+      <button type="submit" name="start_time" value="{{ slot|time:'H:i:s' }}"
+              class="border rounded-xl p-4 hover:bg-pink-100 transition text-center">
+        <div class="font-bold">{{ slot|time:'H:i' }}</div>
+      </button>
+      {% empty %}
+      <div class="col-span-3 text-center text-gray-500 py-4">زمان آزادی وجود ندارد.</div>
+      {% endfor %}
+    </div>
+    
+    <div class="mb-4">
+      <label class="block mb-2 font-medium">توضیحات (اختیاری)</label>
+      <textarea name="notes" rows="3"
+                class="w-full border rounded-lg p-3 focus:ring-2 focus:ring-pink-500 outline-none"
+                placeholder="توضیحات اضافی..."></textarea>
+    </div>
+  </form>
+  {% endif %}
+</div>
 {% endblock %}

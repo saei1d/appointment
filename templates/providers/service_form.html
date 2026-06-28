@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+
+{% block title %}{% if service %}ویرایش خدمت{% else %}افزودن خدمت جدید{% endif %}{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+  <h1 class="text-2xl font-bold mb-6">{% if service %}ویرایش خدمت{% else %}افزودن خدمت جدید{% endif %}</h1>
+  
+  <form method="post">
+    {% csrf_token %}
+    
+    <div class="mb-4">
+      <label class="block mb-2 font-medium">نام خدمت</label>
+      <input type="text" name="name" value="{{ service.name|default:'' }}"
+             class="w-full border rounded-lg p-3 focus:ring-2 focus:ring-pink-500 outline-none"
+             required>
+    </div>
+    
+    <div class="mb-4">
+      <label class="block mb-2 font-medium">توضیحات</label>
+      <textarea name="description" rows="3"
+                class="w-full border rounded-lg p-3 focus:ring-2 focus:ring-pink-500 outline-none"
+                placeholder="توضیحات خدمت...">{{ service.description|default:'' }}</textarea>
+    </div>
+    
+    <div class="mb-4">
+      <label class="block mb-2 font-medium">قیمت (تومان)</label>
+      <input type="number" name="price" value="{{ service.price|default:'' }}"
+             class="w-full border rounded-lg p-3 focus:ring-2 focus:ring-pink-500 outline-none"
+             required min="0">
+    </div>
+    
+    <div class="mb-4">
+      <label class="block mb-2 font-medium">مدت زمان (دقیقه)</label>
+      <input type="number" name="duration" value="{{ service.duration|default:'' }}"
+             class="w-full border rounded-lg p-3 focus:ring-2 focus:ring-pink-500 outline-none"
+             required min="1">
+    </div>
+    
+    <div class="mb-4">
+      <label class="block mb-2 font-medium">مبلغ بیعانه (تومان)</label>
+      <input type="number" name="deposit_amount" value="{{ service.deposit_amount|default:'' }}"
+             class="w-full border rounded-lg p-3 focus:ring-2 focus:ring-pink-500 outline-none"
+             min="0" value="0">
+      <p class="text-sm text-gray-500 mt-1">اگر بیعانه نیاز نیست، 0 بگذارید</p>
+    </div>
+    
+    <div class="flex gap-3">
+      <button type="submit" class="bg-pink-600 text-white px-6 py-3 rounded-lg hover:bg-pink-700 transition">
+        {% if service %}ذخیره تغییرات{% else %}ایجاد خدمت{% endif %}
+      </button>
+      <a href="{% url 'service_list' %}" class="bg-gray-200 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-300 transition">
+        انصراف
+      </a>
+    </div>
+  </form>
+</div>
+{% endblock %}

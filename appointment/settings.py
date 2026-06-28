@@ -7,13 +7,13 @@ SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'dev-only-change-me')
 DEBUG = os.getenv('DJANGO_DEBUG', '1') == '1'
 ALLOWED_HOSTS = [h.strip() for h in os.getenv('DJANGO_ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',') if h.strip()]
 
-AUTH_USER_MODEL = 'users.User'
+AUTH_USER_MODEL = 'accounts.User'
 
 INSTALLED_APPS = [
     'django.contrib.admin', 'django.contrib.auth', 'django.contrib.contenttypes',
     'django.contrib.sessions', 'django.contrib.messages', 'django.contrib.staticfiles',
-    'apps.users', 'apps.provider', 'apps.subscription', 'apps.appointment',
-    'apps.payment', 'apps.notification', 'apps.review', 'apps.blog', 'apps.support',
+    'accounts', 'provider', 'subscription', 'reservations',
+    'payment', 'notification', 'review', 'blog', 'support',
 ]
 
 MIDDLEWARE = [
@@ -38,24 +38,21 @@ TEMPLATES = [{
 }]
 WSGI_APPLICATION = 'appointment.wsgi.application'
 
-if os.getenv('DATABASE_URL'):
-    # Minimal DATABASE_URL parser for postgres://user:pass@host:port/name
-    from urllib.parse import urlparse
-    db = urlparse(os.environ['DATABASE_URL'])
-    DATABASES = {'default': {
-        'ENGINE': 'django.db.backends.postgresql', 'NAME': db.path.lstrip('/'),
-        'USER': db.username or '', 'PASSWORD': db.password or '',
-        'HOST': db.hostname or '', 'PORT': str(db.port or 5432),
-    }}
-else:
-    DATABASES = {'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.getenv('POSTGRES_DB', 'appointment'),
-        'USER': os.getenv('POSTGRES_USER', 'appointment'),
-        'PASSWORD': os.getenv('POSTGRES_PASSWORD', 'appointment'),
-        'HOST': os.getenv('POSTGRES_HOST', 'localhost'),
-        'PORT': os.getenv('POSTGRES_PORT', '5432'),
-    }}
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+    }
+}
+
+# DATABASES = {'default': {
+#     'ENGINE': 'django.db.backends.postgresql',
+#     'NAME': os.getenv('POSTGRES_DB', 'appointment'),
+#     'USER': os.getenv('POSTGRES_USER', 'appointment'),
+#     'PASSWORD': os.getenv('POSTGRES_PASSWORD', 'appointment'),
+#     'HOST': os.getenv('POSTGRES_HOST', 'localhost'),
+#     'PORT': os.getenv('POSTGRES_PORT', '5432'),
+# }}
 
 CACHES = {'default': {'BACKEND': 'django.core.cache.backends.locmem.LocMemCache', 'LOCATION': 'appointment-cache'}}
 

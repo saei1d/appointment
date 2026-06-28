@@ -1,1 +1,73 @@
-{% extends 'base.html' %}{% block content %}<h1 class="text-2xl font-bold mb-4">داشبورد {{ provider.user.fullname }}</h1><div class="grid md:grid-cols-3 gap-4"><div class="bg-white p-4 rounded-2xl shadow">امتیاز: {{ provider.rating }}</div><div class="bg-white p-4 rounded-2xl shadow">بافر: {{ provider.buffer_minutes }} دقیقه</div><div class="bg-white p-4 rounded-2xl shadow">رزروها: {{ appointments|length }}</div></div><h2 class="font-bold mt-6 mb-2">رزروهای اخیر</h2>{% for appointment in appointments %}<div class="bg-white p-3 rounded-xl mb-2">{{ appointment.date }} {{ appointment.start_time }} - {{ appointment.customer.fullname }} - {{ appointment.service.name }}</div>{% endfor %}{% endblock %}
+{% extends 'base.html' %}
+
+{% block title %}داشبورد ارائه‌دهنده{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto">
+  <h1 class="text-2xl font-bold mb-6">داشبورد {{ provider.user.fullname }}</h1>
+  
+  <div class="grid md:grid-cols-4 gap-4 mb-6">
+    <div class="bg-white p-4 rounded-2xl shadow">
+      <div class="text-gray-500 text-sm">امتیاز</div>
+      <div class="text-2xl font-bold">{{ provider.rating }}</div>
+    </div>
+    <div class="bg-white p-4 rounded-2xl shadow">
+      <div class="text-gray-500 text-sm">بافر</div>
+      <div class="text-2xl font-bold">{{ provider.buffer_minutes }} دقیقه</div>
+    </div>
+    <div class="bg-white p-4 rounded-2xl shadow">
+      <div class="text-gray-500 text-sm">رزروها</div>
+      <div class="text-2xl font-bold">{{ appointments|length }}</div>
+    </div>
+    <div class="bg-white p-4 rounded-2xl shadow">
+      <div class="text-gray-500 text-sm">خدمات</div>
+      <div class="text-2xl font-bold">{{ provider.services.count }}</div>
+    </div>
+  </div>
+  
+  <div class="grid md:grid-cols-2 gap-6">
+    <div>
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="font-bold text-lg">رزروهای اخیر</h2>
+        <a href="#" class="text-pink-600 text-sm">مشاهده همه</a>
+      </div>
+      {% for appointment in appointments %}
+      <div class="bg-white p-4 rounded-xl mb-3 shadow">
+        <div class="flex justify-between">
+          <div>
+            <div class="font-bold">{{ appointment.customer.fullname }}</div>
+            <div class="text-gray-500 text-sm">{{ appointment.service.name }}</div>
+          </div>
+          <div class="text-left">
+            <div class="font-bold">{{ appointment.date }}</div>
+            <div class="text-gray-500 text-sm">{{ appointment.start_time }}</div>
+          </div>
+        </div>
+        <div class="mt-2">
+          <span class="px-2 py-1 rounded text-xs {% if appointment.status == 'confirmed' %}bg-green-100 text-green-700{% elif appointment.status == 'pending' %}bg-yellow-100 text-yellow-700{% else %}bg-gray-100 text-gray-700{% endif %}">
+            {{ appointment.status }}
+          </span>
+        </div>
+      </div>
+      {% empty %}
+      <div class="bg-white p-4 rounded-xl text-gray-500">رزروی وجود ندارد</div>
+      {% endfor %}
+    </div>
+    
+    <div>
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="font-bold text-lg">خدمات</h2>
+        <a href="{% url 'service_list' %}" class="text-pink-600 text-sm">مدیریت خدمات</a>
+      </div>
+      {% for service in provider.services.all|slice:":5" %}
+      <div class="bg-white p-4 rounded-xl mb-3 shadow">
+        <div class="font-bold">{{ service.name }}</div>
+        <div class="text-gray-500 text-sm">{{ service.duration }} دقیقه - {{ service.price }} تومان</div>
+      </div>
+      {% empty %}
+      <div class="bg-white p-4 rounded-xl text-gray-500">خدمتی ثبت نشده است</div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %}

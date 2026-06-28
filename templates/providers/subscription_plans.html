@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+
+{% block title %}پلن‌های اشتراک{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+  <h1 class="text-2xl font-bold mb-6">پلن‌های اشتراک</h1>
+  
+  <div class="grid md:grid-cols-3 gap-6">
+    {% for plan in plans %}
+    <div class="bg-white rounded-xl shadow p-6">
+      <h3 class="font-bold text-xl mb-2">{{ plan.name }}</h3>
+      <p class="text-gray-500 text-sm mb-4">{{ plan.description|truncatewords:15 }}</p>
+      
+      <div class="text-3xl font-bold text-pink-600 mb-4">{{ plan.price }} تومان</div>
+      <div class="text-sm text-gray-500 mb-4">{{ plan.duration_days }} روز</div>
+      
+      <ul class="text-sm space-y-2 mb-6">
+        <li class="flex items-center">
+          <span class="mr-2">{% if plan.can_accept_deposits %}✅{% else %}❌{% endif %}</span>
+          پذیرش بیعانه
+        </li>
+        <li class="flex items-center">
+          <span class="mr-2">{% if plan.can_use_sms %}✅{% else %}❌{% endif %}</span>
+          ارسال SMS
+        </li>
+        <li class="flex items-center">
+          <span class="mr-2">{% if plan.can_manage_products %}✅{% else %}❌{% endif %}</span>
+          مدیریت محصولات
+        </li>
+        <li class="flex items-center">
+          <span class="mr-2">{% if plan.can_view_statistics %}✅{% else %}❌{% endif %}</span>
+          مشاهده آمار
+        </li>
+        <li class="flex items-center">
+          <span class="mr-2">{% if plan.can_create_discounts %}✅{% else %}❌{% endif %}</span>
+          ایجاد تخفیف
+        </li>
+        <li class="flex items-center">
+          <span class="mr-2">{% if plan.can_use_loyalty %}✅{% else %}❌{% endif %}</span>
+          برنامه وفاداری
+        </li>
+      </ul>
+      
+      <button class="w-full bg-pink-600 text-white py-3 rounded-lg hover:bg-pink-700 transition">
+        انتخاب پلن
+      </button>
+    </div>
+    {% empty %}
+    <div class="col-span-3 bg-white rounded-xl shadow p-6 text-center text-gray-500">
+      پلنی وجود ندارد
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

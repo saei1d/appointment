@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+
+{% block title %}ثبت‌نام ارائه‌دهنده خدمات{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto bg-white rounded-lg shadow p-6">
+  <h1 class="text-2xl font-bold text-center mb-6">ثبت‌نام به عنوان ارائه‌دهنده خدمات</h1>
+  
+  <form method="post">
+    {% csrf_token %}
+    
+    <div class="mb-4">
+      <label class="block mb-2 font-medium">نام و نام خانوادگی</label>
+      <input type="text" name="fullname" value="{{ request.user.fullname|default:'' }}"
+             class="w-full border rounded-lg p-3 focus:ring-2 focus:ring-pink-500 outline-none"
+             required>
+    </div>
+    
+    <div class="mb-4">
+      <label class="block mb-2 font-medium">نام کاربری (Slug)</label>
+      <input type="text" name="slug" 
+             class="w-full border rounded-lg p-3 focus:ring-2 focus:ring-pink-500 outline-none"
+             placeholder="your-business-name" required>
+      <p class="text-sm text-gray-500 mt-1">این نام در URL صفحه شما استفاده می‌شود</p>
+    </div>
+    
+    <div class="mb-4">
+      <label class="block mb-2 font-medium">توضیحات</label>
+      <textarea name="bio" rows="3"
+                class="w-full border rounded-lg p-3 focus:ring-2 focus:ring-pink-500 outline-none"
+                placeholder="درباره کسب‌وکار خود بنویسید..."></textarea>
+    </div>
+    
+    <div class="mb-4">
+      <label class="block mb-2 font-medium">شماره تماس</label>
+      <input type="tel" name="contact_phone"
+             class="w-full border rounded-lg p-3 focus:ring-2 focus:ring-pink-500 outline-none"
+             placeholder="09123456789">
+    </div>
+    
+    <div class="mb-4">
+      <label class="block mb-2 font-medium">اینستاگرام</label>
+      <input type="url" name="instagram"
+             class="w-full border rounded-lg p-3 focus:ring-2 focus:ring-pink-500 outline-none"
+             placeholder="https://instagram.com/yourusername">
+    </div>
+    
+    <div class="mb-4">
+      <label class="block mb-2 font-medium">تلگرام</label>
+      <input type="url" name="telegram"
+             class="w-full border rounded-lg p-3 focus:ring-2 focus:ring-pink-500 outline-none"
+             placeholder="https://t.me/yourusername">
+    </div>
+    
+    <div class="mb-4">
+      <label class="block mb-2 font-medium">واتساپ</label>
+      <input type="text" name="whatsapp"
+             class="w-full border rounded-lg p-3 focus:ring-2 focus:ring-pink-500 outline-none"
+             placeholder="09123456789">
+    </div>
+    
+    <div class="mb-4">
+      <label class="block mb-2 font-medium">آدرس</label>
+      <textarea name="address" rows="2"
+                class="w-full border rounded-lg p-3 focus:ring-2 focus:ring-pink-500 outline-none"
+                placeholder="آدرس محل کسب‌وکار..."></textarea>
+    </div>
+    
+    <button type="submit" class="w-full bg-pink-600 text-white py-3 rounded-lg hover:bg-pink-700 transition">
+      ثبت‌نام
+    </button>
+  </form>
+</div>
+{% endblock %}
