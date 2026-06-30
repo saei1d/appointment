@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% block title %}مدیریت بلاگ{% endblock %}
+{% block content %}
+<section class="max-w-6xl mx-auto px-4 py-12">
+    <div class="flex justify-between items-center mb-8">
+        <h1 class="text-3xl font-black">مدیریت بلاگ</h1>
+        <a class="bg-pink-600 text-white px-5 py-2 rounded-full hover:bg-pink-700 transition" href="{% url 'blog_create' %}">ایجاد مقاله جدید</a>
+    </div>
+
+    <div class="grid gap-4">
+        {% for post in posts %}
+        <div class="bg-white rounded-3xl p-6 shadow">
+            <div class="flex justify-between items-start">
+                <div>
+                    <h3 class="text-xl font-bold">{{ post.title }}</h3>
+                    <p class="text-sm text-slate-500 mt-1">نویسنده: {{ post.author.fullname }} · {% if post.is_published %}منتشر شده{% else %}پیشنویس{% endif %}</p>
+                </div>
+                <div class="flex gap-2">
+                    <a class="bg-slate-100 px-4 py-2 rounded-full text-sm" href="{% url 'blog_edit' post.pk %}">ویرایش</a>
+                    <a class="bg-red-100 text-red-700 px-4 py-2 rounded-full text-sm" href="{% url 'blog_delete' post.pk %}">حذف</a>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <p class="text-slate-500">هنوز مقاله‌ای ایجاد نشده است.</p>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}
