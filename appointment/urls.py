@@ -37,6 +37,7 @@ for _model, _model_admin in admin.site._registry.items():
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('ckeditor/', include('ckeditor_uploader.urls')),
     path('blog-admin/', include('blog.urls')),
     path('', include('provider.urls')),
     path('accounts/', include('accounts.urls')),

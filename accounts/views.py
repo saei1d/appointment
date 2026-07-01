@@ -43,7 +43,7 @@ def otp_auth(request):
             otp.is_used = True
             otp.save()
             
-            # Get or create user
+            # Get or create user as CUSTOMER
             user, created = User.objects.get_or_create(
                 phone=phone,
                 defaults={'role': User.Role.CUSTOMER}
@@ -59,6 +59,8 @@ def otp_auth(request):
 
 @login_required
 def provider_register(request):
+    provider = Provider.objects.filter(user=request.user).first()
+    
     if request.method == 'POST':
         fullname = request.POST.get('fullname')
         slug = request.POST.get('slug')
@@ -70,21 +72,25 @@ def provider_register(request):
         address = request.POST.get('address', '')
         
         city = request.POST.get('city', '')
-        if len(slug or '') <= 4 or Provider.objects.filter(slug=slug).exclude(user=request.user).exists():
-            messages.error(request, 'اسلاگ باید بیشتر از ۴ حرف و یکتا باشد.')
-            return render(request, 'accounts/provider_register.html')
+        if len(slug or '') <= 3 or Provider.objects.filter(slug=slug).exclude(user=request.user).exists():
+            messages.error(request, 'اسلاگ باید بیشتر از ۳ حرف و یکتا باشد.')
+            return render(request, 'accounts/provider_register.html', {'provider': provider})
         request.user.fullname = fullname
         request.user.role = User.Role.PROVIDER
         request.user.city = city
         request.user.save()
-        provider, _ = Provider.objects.update_or_create(
+        provider, created = Provider.objects.update_or_create(
             user=request.user,
             defaults={'slug': slug, 'city': city, 'bio': bio, 'contact_phone': contact_phone, 'instagram': instagram, 'telegram': telegram, 'whatsapp': whatsapp, 'address': address}
         )
-        messages.success(request, 'ثبت اولیه ذخیره شد؛ حالا یک پلن انتخاب کنید.')
-        return redirect('subscription_plans')
+        if created:
+            messages.success(request, 'ثبت اولیه ذخیره شد؛ حالا یک پلن انتخاب کنید.')
+            return redirect('subscription_plans')
+        else:
+            messages.success(request, 'اطلاعات شما با موفقیت ویرایش شد.')
+            return redirect('provider_dashboard')
     
-    return render(request, 'accounts/provider_register.html')
+    return render(request, 'accounts/provider_register.html', {'provider': provider})
 
 
 @login_required

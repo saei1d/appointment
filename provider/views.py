@@ -17,7 +17,7 @@ from blog.models import Blog
 def home(request):
     q = request.GET.get('q', '').strip()
     categories = ServiceCategory.objects.filter(is_active=True).annotate(provider_count=Count('templates__provider_services__provider', distinct=True))[:8]
-    providers = Provider.objects.filter(is_verified=True).select_related('user')
+    providers = Provider.objects.select_related('user')
     if q:
         providers = providers.filter(Q(user__fullname__icontains=q) | Q(bio__icontains=q) | Q(city__icontains=q) | Q(services__name__icontains=q)).distinct()
     latest_posts = Blog.objects.filter(is_published=True).order_by('-published_at', '-created_at')[:3]
@@ -26,29 +26,41 @@ def home(request):
 
 def category_providers(request, slug):
     category = get_object_or_404(ServiceCategory, slug=slug, is_active=True)
-    city = request.GET.get('city') or request.user.city if request.user.is_authenticated else request.GET.get('city', '')
+    city = request.GET.get('city', '')
+    
     if request.method == 'POST' and request.user.is_authenticated:
         city = request.POST.get('city', '').strip()
         request.user.city = city
         request.user.save(update_fields=['city', 'updated_at'])
         return redirect(f'{request.path}?city={city}')
-    providers = Provider.objects.filter(is_verified=True, services__template__category=category, services__is_active=True).select_related('user').distinct()
+    
+    # If no city in GET and user is authenticated, use user's city
+    if not city and request.user.is_authenticated and request.user.city:
+        city = request.user.city
+    
+    providers = Provider.objects.filter(services__template__category=category, services__is_active=True).select_related('user').distinct()
     if city:
         providers = providers.filter(city=city)
-    cities = Provider.objects.filter(is_verified=True, services__template__category=category).values_list('city', flat=True).distinct()
+    cities = Provider.objects.filter(services__template__category=category).values_list('city', flat=True).distinct()
     return render(request, 'providers/category_providers.html', {'category': category, 'providers': providers, 'city': city, 'cities': cities})
 
 
 def check_slug(request):
     slug = request.GET.get('slug', '').strip()
-    available = len(slug) > 4 and not Provider.objects.filter(slug=slug).exists()
+    # Check for Persian characters
+    if any('\u0600' <= char <= '\u06FF' for char in slug):
+        if request.headers.get('HX-Request'):
+            return HttpResponse('<span class="text-red-600">فقط حروف انگلیسی، اعداد، خط تیره و زیرخط مجاز است.</span>')
+        return JsonResponse({'available': False, 'valid_length': False, 'invalid_chars': True})
+    
+    available = len(slug) > 3 and not Provider.objects.filter(slug=slug).exists()
     if request.headers.get('HX-Request'):
         if available:
             return HttpResponse('<span class="text-green-600">این آدرس قابل استفاده است.</span>')
-        if len(slug) <= 4:
-            return HttpResponse('<span class="text-red-600">اسلاگ باید بیشتر از ۴ حرف باشد.</span>')
+        if len(slug) <= 3:
+            return HttpResponse('<span class="text-red-600">اسلاگ باید بیشتر از ۳ حرف باشد.</span>')
         return HttpResponse('<span class="text-red-600">این آدرس قبلا استفاده شده است.</span>')
-    return JsonResponse({'available': available, 'valid_length': len(slug) > 4})
+    return JsonResponse({'available': available, 'valid_length': len(slug) > 3})
 
 
 def provider_public_page(request, slug):

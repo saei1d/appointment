@@ -4,6 +4,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.utils.text import slugify
 from .models import Blog
+from .forms import BlogForm
 
 
 @login_required
@@ -17,30 +18,25 @@ def blog_list(request):
 @user_passes_test(lambda u: u.is_staff)
 def blog_create(request):
     if request.method == 'POST':
-        title = request.POST.get('title', '').strip()
-        content = request.POST.get('content', '').strip()
-        image = request.FILES.get('image')
-        is_published = bool(request.POST.get('is_published'))
-        if title:
-            slug = slugify(title, allow_unicode=True)
-            # Ensure slug is unique
-            counter = 1
-            original_slug = slug
-            while Blog.objects.filter(slug=slug).exists():
-                slug = f'{original_slug}-{counter}'
-                counter += 1
-            post = Blog.objects.create(
-                title=title,
-                slug=slug,
-                content=content,
-                author=request.user,
-                image=image,
-                is_published=is_published,
-                published_at=timezone.now() if is_published else None
-            )
+        form = BlogForm(request.POST, request.FILES)
+        if form.is_valid():
+            post = form.save(commit=False)
+            post.author = request.user
+            if not post.slug:
+                post.slug = slugify(post.title, allow_unicode=True)
+                counter = 1
+                original_slug = post.slug
+                while Blog.objects.filter(slug=post.slug).exists():
+                    post.slug = f'{original_slug}-{counter}'
+                    counter += 1
+            if post.is_published and not post.published_at:
+                post.published_at = timezone.now()
+            post.save()
             messages.success(request, 'مقاله بلاگ با موفقیت ایجاد شد.')
             return redirect('blog_list')
-    return render(request, 'blog/form.html')
+    else:
+        form = BlogForm()
+    return render(request, 'blog/form.html', {'form': form})
 
 
 @login_required
@@ -48,23 +44,17 @@ def blog_create(request):
 def blog_edit(request, pk):
     post = get_object_or_404(Blog, pk=pk)
     if request.method == 'POST':
-        post.title = request.POST.get('title', post.title).strip()
-        post.content = request.POST.get('content', post.content).strip()
-        if 'image' in request.FILES:
-            post.image = request.FILES['image']
-        post.is_published = bool(request.POST.get('is_published'))
-        if post.is_published and not post.published_at:
-            post.published_at = timezone.now()
-        if request.POST.get('slug'):
-            new_slug = request.POST.get('slug', '').strip()
-            if new_slug != post.slug:
-                # Check uniqueness
-                if not Blog.objects.filter(slug=new_slug).exclude(pk=post.pk).exists():
-                    post.slug = new_slug
-        post.save()
-        messages.success(request, 'مقاله بلاگ با موفقیت ویرایش شد.')
-        return redirect('blog_list')
-    return render(request, 'blog/form.html', {'post': post})
+        form = BlogForm(request.POST, request.FILES, instance=post)
+        if form.is_valid():
+            post = form.save(commit=False)
+            if post.is_published and not post.published_at:
+                post.published_at = timezone.now()
+            post.save()
+            messages.success(request, 'مقاله بلاگ با موفقیت ویرایش شد.')
+            return redirect('blog_list')
+    else:
+        form = BlogForm(instance=post)
+    return render(request, 'blog/form.html', {'form': form, 'post': post})
 
 
 @login_required

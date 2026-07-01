@@ -1,1 +1,102 @@
-<!doctype html><html lang="fa" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>{% block title %}نوبتینو زیبایی{% endblock %}</title><script src="https://cdn.tailwindcss.com"></script><script defer src="https://unpkg.com/htmx.org@1.9.12"></script><script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script></head><body class="bg-slate-50 text-slate-900"><nav class="sticky top-0 z-30 bg-white/90 backdrop-blur border-b"><div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between"><a class="font-black text-2xl text-pink-600" href="{% url 'home' %}">نوبتینو</a><div class="hidden md:flex gap-6 text-sm font-medium"><a href="{% url 'home' %}#services">خدمات</a><a href="{% url 'home' %}#how">نحوه کار</a><a href="{% url 'home' %}#blog">بلاگ</a></div><div class="flex gap-3 items-center text-sm">{% if user.is_authenticated %}<a class="rounded-full bg-slate-100 px-4 py-2 hover:bg-slate-200 transition" href="{% if user.is_provider_role %}{% url 'provider_dashboard' %}{% else %}{% url 'customer_dashboard' %}{% endif %}">داشبورد</a>{% if user.is_staff %}<a class="rounded-full bg-purple-600 text-white px-4 py-2 hover:bg-purple-700 transition" href="{% url 'blog_list' %}">مدیریت بلاگ</a>{% endif %}<form method="post" action="{% url 'logout' %}">{% csrf_token %}<button class="text-slate-500 hover:text-slate-700 transition">خروج</button></form>{% else %}<a class="rounded-full bg-gradient-to-r from-pink-600 to-fuchsia-600 text-white px-6 py-3 shadow-lg hover:shadow-xl transition transform hover:-translate-y-0.5" href="{% url 'otp_auth' %}">ورود / ثبت نام</a>{% endif %}</div></div></nav><main>{% for message in messages %}<div class="max-w-5xl mx-auto mt-4 rounded-2xl bg-white p-4 shadow">{{ message }}</div>{% endfor %}{% block content %}{% endblock %}</main><footer class="mt-16 bg-slate-950 text-white"><div class="max-w-7xl mx-auto px-4 py-10 grid md:grid-cols-4 gap-8"><div><b class="text-2xl text-pink-300">نوبتینو</b><p class="mt-3 text-slate-300">رزرو آنلاین خدمات زیبایی بر اساس شهر، دسته خدمت و متخصص‌های تاییدشده.</p></div><div><b>دسته‌ها</b><p class="mt-3 text-slate-300">ناخن، مژه، پوست و مو، ماساژ و خدمات تخصصی زیبایی.</p></div><div><b>برای متخصص‌ها</b><p class="mt-3 text-slate-300">صفحه اختصاصی، مدیریت رزرو، رنگ‌بندی برند و اشتراک قابل تمدید.</p></div><div><b>پشتیبانی</b><p class="mt-3 text-slate-300">تیکت، بلاگ آموزشی و تیم ادمین برای پاسخگویی سریع.</p></div></div></footer></body></html>
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}نوبتینو{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        ink: "#1d1a17",
+                        stonewarm: "#64625e",
+                        mist: "#f7f7f7",
+                        sand: "#f0d8a3",
+                        clay: "#d5c2ad",
+                        blush: "#f6ede6",
+                        line: "#e7e2db",
+                        card: "#ffffff",
+                    },
+                    boxShadow: {
+                        soft: "0 16px 40px rgba(29, 26, 23, 0.07)",
+                        insetSoft: "inset 0 1px 0 rgba(255,255,255,0.7)",
+                    },
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background: radial-gradient(circle at top right, rgba(240, 216, 163, 0.24), transparent 26%),
+                        radial-gradient(circle at top left, rgba(213, 194, 173, 0.22), transparent 22%),
+                        linear-gradient(180deg, #fbfaf8 0%, #f7f7f7 28%, #f6f5f2 100%);
+        }
+    </style>
+</head>
+<body class="bg-mist text-ink antialiased">
+    <nav class="sticky top-0 z-30 bg-white/90 backdrop-blur border-b border-line">
+        <div class="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
+            <a class="font-black text-2xl text-ink" href="{% url 'home' %}">نوبتینو</a>
+            <div class="hidden md:flex items-center gap-8 text-sm font-medium">
+                <a href="{% url 'home' %}#services" class="text-stonewarm hover:text-ink transition">خدمات</a>
+                <a href="{% url 'home' %}#how" class="text-stonewarm hover:text-ink transition">نحوه کار</a>
+                <a href="{% url 'home' %}#blog" class="text-stonewarm hover:text-ink transition">بلاگ</a>
+            </div>
+            <div class="flex items-center gap-4 text-sm">
+                {% if user.is_authenticated %}
+                    <a class="rounded-full border border-line bg-card px-5 py-2.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] font-medium transition hover:-translate-y-0.5" href="{% if user.is_provider_role %}{% url 'provider_dashboard' %}{% else %}{% url 'customer_dashboard' %}{% endif %}">داشبورد</a>
+                    {% if user.is_staff %}
+                        <a class="rounded-full border border-line bg-card px-5 py-2.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] font-medium transition hover:-translate-y-0.5" href="{% url 'blog_list' %}">مدیریت بلاگ</a>
+                    {% endif %}
+                    <form method="post" action="{% url 'logout' %}">
+                        {% csrf_token %}
+                        <button type="submit" class="text-stonewarm hover:text-ink transition">خروج</button>
+                    </form>
+                {% else %}
+                    <a class="rounded-full bg-gradient-to-r from-pink-500 to-fuchsia-500 text-white px-7 py-3 shadow-lg hover:shadow-xl transition transform hover:-translate-y-0.5 font-medium" href="{% url 'otp_auth' %}">ورود / ثبت نام</a>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    <main class="min-h-screen">
+        {% if messages %}
+            <div class="max-w-4xl mx-auto mt-6 space-y-3">
+                {% for message in messages %}
+                    <div class="bg-card border border-line rounded-3xl p-5 shadow-soft">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="mt-16 bg-ink text-white">
+        <div class="max-w-6xl mx-auto px-4 py-12 grid md:grid-cols-4 gap-8">
+            <div>
+                <b class="text-2xl text-sand">نوبتینو</b>
+                <p class="mt-4 text-white/70">رزرو آنلاین خدمات زیبایی بر اساس شهر، دسته خدمت و متخصص‌های تاییدشده.</p>
+            </div>
+            <div>
+                <p class="font-semibold mb-4">دسته‌ها</p>
+                <p class="text-white/70">ناخن، مژه، پوست و مو، ماساژ و خدمات تخصصی زیبایی.</p>
+            </div>
+            <div>
+                <p class="font-semibold mb-4">برای متخصص‌ها</p>
+                <p class="text-white/70">صفحه اختصاصی، مدیریت رزرو، رنگ‌بندی برند و اشتراک قابل تمدید.</p>
+            </div>
+            <div>
+                <p class="font-semibold mb-4">پشتیبانی</p>
+                <p class="text-white/70">تیکت، بلاگ آموزشی و تیم ادمین برای پاسخگویی سریع.</p>
+            </div>
+        </div>
+        <div class="border-t border-white/10 py-6 text-center text-white/50 text-sm">
+            © 2025 نوبتینو. تمامی حقوق محفوظ است.
+        </div>
+    </footer>
+</body>
+</html>

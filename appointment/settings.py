@@ -12,9 +12,25 @@ AUTH_USER_MODEL = 'accounts.User'
 INSTALLED_APPS = [
     'django.contrib.admin', 'django.contrib.auth', 'django.contrib.contenttypes',
     'django.contrib.sessions', 'django.contrib.messages', 'django.contrib.staticfiles',
+    'ckeditor',
+    'ckeditor_uploader',
     'accounts', 'provider', 'subscription', 'reservations',
     'payment', 'notification', 'review', 'blog', 'support',
 ]
+
+# CKEditor Configuration
+CKEDITOR_CONFIGS = {
+    'default': {
+        'toolbar': 'full',
+        'height': 300,
+        'width': '100%',
+        'extraPlugins': ','.join([
+            'uploadimage',
+        ]),
+    },
+}
+
+CKEDITOR_UPLOAD_PATH = 'ckeditor_uploads/'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -71,7 +87,7 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 MEDIA_URL = 'media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-LOGIN_URL = 'login'
+LOGIN_URL = 'otp_auth'
 LOGIN_REDIRECT_URL = 'provider_dashboard'
 LOGOUT_REDIRECT_URL = 'home'
 

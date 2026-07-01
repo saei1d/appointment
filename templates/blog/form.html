@@ -6,28 +6,29 @@
         <h1 class="text-2xl font-black mb-8">{% if post %}ویرایش مقاله{% else %}ایجاد مقاله{% endif %}</h1>
         <form method="post" enctype="multipart/form-data" class="grid gap-6">
             {% csrf_token %}
+            {{ form.media }}
             <div>
-                <label class="block font-medium mb-2">عنوان</label>
-                <input type="text" name="title" value="{% if post %}{{ post.title }}{% endif %}" class="w-full rounded-2xl border p-4" required>
+                <label class="block font-medium mb-2">{{ form.title.label }}</label>
+                {{ form.title }}
             </div>
             <div>
-                <label class="block font-medium mb-2">اسلاگ (آدرس صفحه)</label>
-                <input type="text" name="slug" value="{% if post %}{{ post.slug }}{% endif %}" class="w-full rounded-2xl border p-4" {% if post %}required{% endif %}>
+                <label class="block font-medium mb-2">{{ form.slug.label }}</label>
+                {{ form.slug }}
             </div>
             <div>
-                <label class="block font-medium mb-2">محتوا</label>
-                <textarea name="content" rows="12" class="w-full rounded-2xl border p-4" required>{% if post %}{{ post.content }}{% endif %}</textarea>
+                <label class="block font-medium mb-2">{{ form.content.label }}</label>
+                {{ form.content }}
             </div>
             <div>
-                <label class="block font-medium mb-2">تصویر</label>
-                <input type="file" name="image" class="w-full">
+                <label class="block font-medium mb-2">{{ form.image.label }}</label>
+                {{ form.image }}
                 {% if post and post.image %}
                 <img src="{{ post.image.url }}" alt="{{ post.title }}" class="mt-3 w-32 rounded-xl">
                 {% endif %}
             </div>
             <div class="flex items-center gap-2">
-                <input type="checkbox" name="is_published" id="id_is_published" {% if post and post.is_published %}checked{% endif %}>
-                <label for="id_is_published" class="font-medium">منتشر شود</label>
+                {{ form.is_published }}
+                <label for="{{ form.is_published.id_for_label }}" class="font-medium">منتشر شود</label>
             </div>
             <div class="flex gap-3">
                 <button class="bg-pink-600 text-white px-6 py-3 rounded-full hover:bg-pink-700 transition" type="submit">{% if post %}ذخیره تغییرات{% else %}ایجاد مقاله{% endif %}</button>

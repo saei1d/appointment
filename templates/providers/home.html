@@ -1,7 +1,112 @@
-{% extends 'base.html' %}{% block title %}رزرو آنلاین خدمات زیبایی{% endblock %}{% block content %}
-<section class="bg-gradient-to-br from-pink-100 via-white to-fuchsia-100"><div class="max-w-7xl mx-auto px-4 py-16 grid lg:grid-cols-2 gap-10 items-center"><div><span class="rounded-full bg-white px-4 py-2 text-pink-700 shadow">رزرو سریع در شهر شما</span><h1 class="mt-6 text-4xl md:text-6xl font-black leading-tight">زیبایی را هوشمند، محلی و مطمئن رزرو کن</h1><p class="mt-5 text-lg text-slate-600">اول دسته خدمت را انتخاب کن، شهر را ثبت کن و فقط متخصص‌های همان شهر را ببین.</p><form class="mt-8 flex gap-2 bg-white rounded-3xl p-2 shadow-xl" method="get"><input name="q" value="{{ q }}" class="flex-1 px-4 outline-none" placeholder="جستجو: نام، شهر، خدمت..."><button class="bg-gradient-to-r from-pink-600 to-fuchsia-600 text-white rounded-2xl px-6 py-3 shadow hover:shadow-xl transition">جستجو</button></form><div class="mt-6 flex gap-3">{% if not user.is_authenticated %}<a class="bg-gradient-to-r from-pink-600 to-fuchsia-600 text-white px-6 py-3 rounded-full shadow-lg hover:shadow-xl transition" href="{% url 'otp_auth' %}">ثبت نام / ورود</a>{% endif %}</div></div><div class="rounded-[2rem] bg-white p-4 shadow-2xl"><div class="grid grid-cols-2 gap-3">{% for category in categories|slice:":4" %}<a href="{% url 'category_providers' category.slug %}" class="rounded-3xl bg-slate-50 p-6 hover:bg-pink-50 transition"><div class="text-4xl">{{ category.icon }}</div><h3 class="mt-4 font-bold">{{ category.name }}</h3><p class="text-sm text-slate-500">{{ category.provider_count }} متخصص</p></a>{% endfor %}</div></div></div></section>
-<section id="services" class="max-w-7xl mx-auto px-4 py-14"><div class="flex justify-between items-end"><div><h2 class="text-3xl font-black">گروه خدمات</h2><p class="text-slate-500 mt-2">محصول کلی نمایش داده می‌شود؛ انتخاب متخصص بعد از شهر انجام می‌شود.</p></div></div><div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-8">{% for category in categories %}<a class="bg-white rounded-3xl p-6 shadow hover:-translate-y-1 transition" href="{% url 'category_providers' category.slug %}"><div class="text-4xl">{{ category.icon }}</div><h3 class="mt-4 text-xl font-bold">{{ category.name }}</h3><p class="mt-2 text-slate-500">{{ category.description|truncatechars:80 }}</p></a>{% empty %}<p>ادمین هنوز گروه خدماتی وارد نکرده است.</p>{% endfor %}</div></section>
-<section id="how" class="max-w-7xl mx-auto px-4 py-10 grid md:grid-cols-3 gap-4"><div class="bg-white rounded-3xl p-6 shadow"><b>۱. انتخاب خدمت</b><p class="text-slate-500 mt-2">ناخن، مژه، پوست و مو، ماساژ.</p></div><div class="bg-white rounded-3xl p-6 shadow"><b>۲. ثبت شهر</b><p class="text-slate-500 mt-2">شهر در پروفایل ذخیره می‌شود و قابل تغییر است.</p></div><div class="bg-white rounded-3xl p-6 shadow"><b>۳. رزرو تایم</b><p class="text-slate-500 mt-2">صفحه متخصص، خدمات، نمونه‌کار و زمان‌های آزاد.</p></div></section>
-<section class="max-w-7xl mx-auto px-4 py-10"><h2 class="text-3xl font-black mb-6">متخصص‌های منتخب</h2><div class="grid md:grid-cols-3 gap-4">{% for provider in providers %}<a class="bg-white rounded-3xl p-5 shadow hover:-translate-y-1 transition" href="{% url 'provider_public_page' provider.slug %}"><div class="h-32 rounded-2xl bg-pink-100"></div><h3 class="mt-4 font-bold">{{ provider.user.fullname }}</h3><p class="text-sm text-slate-500">{{ provider.city }} · {{ provider.rating }} امتیاز</p></a>{% endfor %}</div></section>
-<section id="blog" class="max-w-7xl mx-auto px-4 py-10"><h2 class="text-3xl font-black mb-6">تازه‌ترین بلاگ</h2><div class="grid md:grid-cols-3 gap-4">{% for post in latest_posts %}<article class="bg-white rounded-3xl p-6 shadow"><h3 class="font-bold text-xl">{{ post.title }}</h3><p class="mt-3 text-slate-500">{{ post.content|striptags|truncatechars:120 }}</p></article>{% empty %}<p>هنوز مقاله‌ای منتشر نشده است.</p>{% endfor %}</div></section>
+{% extends 'base.html' %}
+{% block title %}رزرو آنلاین خدمات زیبایی{% endblock %}
+{% block content %}
+<section class="py-20">
+    <div class="max-w-6xl mx-auto px-4 grid lg:grid-cols-2 gap-12 items-center">
+        <div>
+            <span class="rounded-full bg-card border border-line px-5 py-2 text-sm font-semibold text-ink shadow-soft inline-block">رزرو سریع در شهر شما</span>
+            <h1 class="mt-6 text-5xl md:text-6xl font-black leading-tight text-ink">زیبایی را هوشمند، محلی و مطمئن رزرو کن</h1>
+            <p class="mt-5 text-lg text-stonewarm">اول دسته خدمت را انتخاب کن، شهر را ثبت کن و فقط متخصص‌های همان شهر را ببین.</p>
+            
+            <form class="mt-8 flex flex-col sm:flex-row gap-3 bg-card rounded-[28px] p-3 shadow-soft border border-line" method="get">
+                <input name="q" value="{{ q }}" class="flex-1 px-6 py-4 rounded-[22px] border border-line bg-mist focus:outline-none focus:ring-2 focus:ring-clay/50" placeholder="جستجو: نام، شهر، خدمت...">
+                <button class="bg-gradient-to-r from-pink-500 to-fuchsia-500 text-white rounded-[22px] px-8 py-4 shadow-lg hover:shadow-xl transition transform hover:-translate-y-0.5 font-semibold">جستجو</button>
+            </form>
+            
+            <div class="mt-8 flex flex-wrap gap-3">
+                {% if not user.is_authenticated %}
+                    <a class="bg-gradient-to-r from-pink-500 to-fuchsia-500 text-white px-8 py-4 rounded-full shadow-lg hover:shadow-xl transition transform hover:-translate-y-0.5 font-semibold" href="{% url 'otp_auth' %}">ثبت نام / ورود</a>
+                {% elif user.is_customer_role %}
+                    <a class="bg-gradient-to-r from-purple-500 to-indigo-500 text-white px-8 py-4 rounded-full shadow-lg hover:shadow-xl transition transform hover:-translate-y-0.5 font-semibold" href="{% url 'provider_register' %}">ثبت لاین زیبایی</a>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="rounded-[28px] p-4 bg-white/70 shadow-soft border border-line">
+            <div class="grid grid-cols-2 gap-3">
+                {% for category in categories|slice:":4" %}
+                    <a href="{% url 'category_providers' category.slug %}" class="rounded-[22px] bg-blush p-6 hover:bg-clay/30 transition flex flex-col gap-3">
+                        <div class="text-4xl">{{ category.icon }}</div>
+                        <h3 class="font-bold text-lg">{{ category.name }}</h3>
+                        <p class="text-sm text-stonewarm">{{ category.provider_count }} متخصص</p>
+                    </a>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</section>
+
+<section id="services" class="py-16">
+    <div class="max-w-6xl mx-auto px-4">
+        <div class="flex justify-between items-end mb-8">
+            <div>
+                <h2 class="text-4xl font-black text-ink">گروه خدمات</h2>
+                <p class="text-stonewarm mt-3 text-lg">محصول کلی نمایش داده می‌شود؛ انتخاب متخصص بعد از شهر انجام می‌شود.</p>
+            </div>
+        </div>
+        
+        <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            {% for category in categories %}
+                <a class="bg-card rounded-[28px] p-6 shadow-soft border border-line hover:-translate-y-1 transition hover:shadow-cardHover" href="{% url 'category_providers' category.slug %}">
+                    <div class="text-4xl">{{ category.icon }}</div>
+                    <h3 class="mt-5 text-2xl font-bold">{{ category.name }}</h3>
+                    <p class="mt-3 text-stonewarm">{{ category.description|truncatechars:80 }}</p>
+                </a>
+            {% empty %}
+                <p class="text-stonewarm text-lg">ادمین هنوز گروه خدماتی وارد نکرده است.</p>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<section id="how" class="py-16">
+    <div class="max-w-6xl mx-auto px-4 grid md:grid-cols-3 gap-6">
+        <div class="bg-card rounded-[28px] p-7 shadow-soft border border-line">
+            <p class="text-2xl font-black mb-2">۱.</p>
+            <h3 class="text-xl font-bold mb-3">انتخاب خدمت</h3>
+            <p class="text-stonewarm">ناخن، مژه، پوست و مو، ماساژ.</p>
+        </div>
+        <div class="bg-card rounded-[28px] p-7 shadow-soft border border-line">
+            <p class="text-2xl font-black mb-2">۲.</p>
+            <h3 class="text-xl font-bold mb-3">ثبت شهر</h3>
+            <p class="text-stonewarm">شهر در پروفایل ذخیره می‌شود و قابل تغییر است.</p>
+        </div>
+        <div class="bg-card rounded-[28px] p-7 shadow-soft border border-line">
+            <p class="text-2xl font-black mb-2">۳.</p>
+            <h3 class="text-xl font-bold mb-3">رزرو تایم</h3>
+            <p class="text-stonewarm">صفحه متخصص، خدمات، نمونه‌کار و زمان‌های آزاد.</p>
+        </div>
+    </div>
+</section>
+
+<section class="py-16">
+    <div class="max-w-6xl mx-auto px-4">
+        <h2 class="text-4xl font-black text-ink mb-8">متخصص‌های منتخب</h2>
+        <div class="grid md:grid-cols-3 gap-6">
+            {% for provider in providers %}
+                <a class="bg-card rounded-[28px] p-7 shadow-soft border border-line hover:-translate-y-1 transition hover:shadow-cardHover" href="{% url 'provider_public_page' provider.slug %}">
+                    <div class="h-32 rounded-[22px] bg-blush"></div>
+                    <h3 class="mt-5 font-bold text-xl">{{ provider.user.fullname }}</h3>
+                    <p class="text-sm text-stonewarm mt-2">{{ provider.city }} · {{ provider.rating }} امتیاز</p>
+                </a>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<section id="blog" class="py-16">
+    <div class="max-w-6xl mx-auto px-4">
+        <h2 class="text-4xl font-black text-ink mb-8">تازه‌ترین بلاگ</h2>
+        <div class="grid md:grid-cols-3 gap-6">
+            {% for post in latest_posts %}
+                <article class="bg-card rounded-[28px] p-7 shadow-soft border border-line">
+                    <h3 class="font-bold text-xl">{{ post.title }}</h3>
+                    <p class="mt-4 text-stonewarm">{{ post.content|striptags|truncatechars:120 }}</p>
+                </article>
+            {% empty %}
+                <p class="text-stonewarm text-lg">هنوز مقاله‌ای منتشر نشده است.</p>
+            {% endfor %}
+        </div>
+    </div>
+</section>
 {% endblock %}
