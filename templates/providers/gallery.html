@@ -1,0 +1,1 @@
+{% extends 'base.html' %}{% block content %}<section class="p-4"><h1 class="brand text-4xl">گالری {{ provider.user.fullname }}</h1><div class="mt-4 grid grid-cols-2 gap-3">{% for item in gallery %}<img class="aspect-square rounded-3xl object-cover shadow" src="{{ item.image.url }}">{% empty %}<p>عکسی ثبت نشده است.</p>{% endfor %}</div></section>{% endblock %}

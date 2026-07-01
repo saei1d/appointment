@@ -2,6 +2,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
+from blog.views_public import blog_list_public, blog_detail_public
 
 
 _original_get_app_list = admin.site.get_app_list
@@ -39,8 +40,11 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('ckeditor/', include('ckeditor_uploader.urls')),
     path('blog-admin/', include('blog.urls')),
+    path('blog/', blog_list_public, name='blog_public_list'),
+    path('blog/<slug:slug>/', blog_detail_public, name='blog_detail_public'),
     path('', include('provider.urls')),
     path('accounts/', include('accounts.urls')),
+    path('bookings/', include('reservations.urls')),
 ]
 
 if settings.DEBUG:

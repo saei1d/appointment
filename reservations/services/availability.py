@@ -11,7 +11,9 @@ def _ranges_for_date(provider, date):
     return [(h.start_time, h.end_time) for h in provider.working_hours.filter(weekday=date.weekday(), is_active=True)]
 
 
-def generate_available_slots(provider, service, date, step_minutes=30):
+def generate_available_slots(provider, service, date, step_minutes=None):
+    if step_minutes is None:
+        step_minutes = service.duration
     duration = timedelta(minutes=service.duration + provider.buffer_minutes)
     appointments = list(provider.appointments.filter(date=date, status__in=ACTIVE_STATUSES).only('start_time', 'end_time'))
     slots = []
