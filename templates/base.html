@@ -1,102 +1,23 @@
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}نوبتینو{% endblock %}</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        ink: "#1d1a17",
-                        stonewarm: "#64625e",
-                        mist: "#f7f7f7",
-                        sand: "#f0d8a3",
-                        clay: "#d5c2ad",
-                        blush: "#f6ede6",
-                        line: "#e7e2db",
-                        card: "#ffffff",
-                    },
-                    boxShadow: {
-                        soft: "0 16px 40px rgba(29, 26, 23, 0.07)",
-                        insetSoft: "inset 0 1px 0 rgba(255,255,255,0.7)",
-                    },
-                }
-            }
-        }
-    </script>
-    <style>
-        body {
-            background: radial-gradient(circle at top right, rgba(240, 216, 163, 0.24), transparent 26%),
-                        radial-gradient(circle at top left, rgba(213, 194, 173, 0.22), transparent 22%),
-                        linear-gradient(180deg, #fbfaf8 0%, #f7f7f7 28%, #f6f5f2 100%);
-        }
-    </style>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}نوبتینو{% endblock %}</title>
+  <script src="https://cdn.tailwindcss.com"></script><script src="https://unpkg.com/htmx.org@1.9.10"></script>
+  <style>
+    @font-face{font-family:Razan;src:url('/media/fonts/Razan.woff2') format('woff2'),url('/media/fonts/Razan.ttf') format('truetype');font-display:swap}
+    @font-face{font-family:Lalezar;src:url('/media/fonts/Lalezar.woff2') format('woff2'),url('/media/fonts/Lalezar.ttf') format('truetype');font-display:swap}
+    body{font-family:Razan,ui-sans-serif,system-ui;background:linear-gradient(180deg,#fff8f5,#f7f1ea)} .brand{font-family:Lalezar,Razan,sans-serif}.snap-x{scroll-snap-type:x mandatory}.snap-card{scroll-snap-align:start}
+  </style>
 </head>
-<body class="bg-mist text-ink antialiased">
-    <nav class="sticky top-0 z-30 bg-white/90 backdrop-blur border-b border-line">
-        <div class="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
-            <a class="font-black text-2xl text-ink" href="{% url 'home' %}">نوبتینو</a>
-            <div class="hidden md:flex items-center gap-8 text-sm font-medium">
-                <a href="{% url 'home' %}#services" class="text-stonewarm hover:text-ink transition">خدمات</a>
-                <a href="{% url 'home' %}#how" class="text-stonewarm hover:text-ink transition">نحوه کار</a>
-                <a href="{% url 'home' %}#blog" class="text-stonewarm hover:text-ink transition">بلاگ</a>
-            </div>
-            <div class="flex items-center gap-4 text-sm">
-                {% if user.is_authenticated %}
-                    <a class="rounded-full border border-line bg-card px-5 py-2.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] font-medium transition hover:-translate-y-0.5" href="{% if user.is_provider_role %}{% url 'provider_dashboard' %}{% else %}{% url 'customer_dashboard' %}{% endif %}">داشبورد</a>
-                    {% if user.is_staff %}
-                        <a class="rounded-full border border-line bg-card px-5 py-2.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] font-medium transition hover:-translate-y-0.5" href="{% url 'blog_list' %}">مدیریت بلاگ</a>
-                    {% endif %}
-                    <form method="post" action="{% url 'logout' %}">
-                        {% csrf_token %}
-                        <button type="submit" class="text-stonewarm hover:text-ink transition">خروج</button>
-                    </form>
-                {% else %}
-                    <a class="rounded-full bg-gradient-to-r from-pink-500 to-fuchsia-500 text-white px-7 py-3 shadow-lg hover:shadow-xl transition transform hover:-translate-y-0.5 font-medium" href="{% url 'otp_auth' %}">ورود / ثبت نام</a>
-                {% endif %}
-            </div>
-        </div>
+<body class="text-[#261f1b] antialiased">
+  <div class="mx-auto min-h-screen max-w-[430px] bg-[#fffaf7] shadow-2xl">
+    <nav class="sticky top-0 z-40 border-b border-black/5 bg-white/85 px-4 py-3 backdrop-blur">
+      <div class="flex items-center justify-between"><a class="brand text-3xl text-pink-600" href="{% url 'home' %}">نوبتینو</a><div class="flex items-center gap-2 text-xs">{% if user.is_authenticated %}<a class="rounded-full bg-stone-900 px-4 py-2 text-white" href="{% if user.is_provider_role %}{% url 'provider_dashboard' %}{% else %}{% url 'customer_dashboard' %}{% endif %}">داشبورد</a><form method="post" action="{% url 'logout' %}">{% csrf_token %}<button class="text-stone-500">خروج</button></form>{% else %}<a class="rounded-full bg-pink-500 px-4 py-2 text-white" href="{% url 'otp_auth' %}">ورود</a>{% endif %}</div></div>
     </nav>
-
-    <main class="min-h-screen">
-        {% if messages %}
-            <div class="max-w-4xl mx-auto mt-6 space-y-3">
-                {% for message in messages %}
-                    <div class="bg-card border border-line rounded-3xl p-5 shadow-soft">
-                        {{ message }}
-                    </div>
-                {% endfor %}
-            </div>
-        {% endif %}
-        {% block content %}{% endblock %}
-    </main>
-
-    <footer class="mt-16 bg-ink text-white">
-        <div class="max-w-6xl mx-auto px-4 py-12 grid md:grid-cols-4 gap-8">
-            <div>
-                <b class="text-2xl text-sand">نوبتینو</b>
-                <p class="mt-4 text-white/70">رزرو آنلاین خدمات زیبایی بر اساس شهر، دسته خدمت و متخصص‌های تاییدشده.</p>
-            </div>
-            <div>
-                <p class="font-semibold mb-4">دسته‌ها</p>
-                <p class="text-white/70">ناخن، مژه، پوست و مو، ماساژ و خدمات تخصصی زیبایی.</p>
-            </div>
-            <div>
-                <p class="font-semibold mb-4">برای متخصص‌ها</p>
-                <p class="text-white/70">صفحه اختصاصی، مدیریت رزرو، رنگ‌بندی برند و اشتراک قابل تمدید.</p>
-            </div>
-            <div>
-                <p class="font-semibold mb-4">پشتیبانی</p>
-                <p class="text-white/70">تیکت، بلاگ آموزشی و تیم ادمین برای پاسخگویی سریع.</p>
-            </div>
-        </div>
-        <div class="border-t border-white/10 py-6 text-center text-white/50 text-sm">
-            © 2025 نوبتینو. تمامی حقوق محفوظ است.
-        </div>
-    </footer>
+    {% if messages %}<div class="space-y-2 p-4">{% for message in messages %}<div class="rounded-2xl border bg-white p-3 text-sm shadow">{{ message }}</div>{% endfor %}</div>{% endif %}
+    <main class="pb-8">{% block content %}{% endblock %}</main>
+    <footer class="mx-4 mb-4 rounded-[2rem] bg-stone-950 p-6 text-white"><b class="brand text-3xl text-pink-200">نوبتینو</b><p class="mt-2 text-sm text-white/70">رزرو سریع خدمات زیبایی در شهر شما.</p><div class="mt-5 grid grid-cols-2 gap-2 text-sm text-white/70"><a href="{% url 'onboarding_welcome' %}">شروع سریع</a><a href="{% url 'provider_register' %}">ثبت متخصص</a><a href="{% url 'customer_bookings' %}">رزروهای من</a><a href="/blog/">بلاگ</a></div></footer>
+  </div>
 </body>
 </html>

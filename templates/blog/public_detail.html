@@ -1,0 +1,1 @@
+{% extends 'base.html' %}{% block content %}<article class="p-4"><h1 class="brand text-4xl">{{ post.title }}</h1>{% if post.image %}<img class="mt-4 w-full rounded-3xl" src="{{ post.image.url }}">{% endif %}<div class="prose mt-4 max-w-none rounded-3xl bg-white p-5 shadow">{{ post.content|safe }}</div></article>{% endblock %}
