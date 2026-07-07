@@ -19,8 +19,20 @@
     {% csrf_token %}
     <label style="color: var(--accent);">انتخاب خدمت مصوب ادمین
       <select name="template" class="mt-2 w-full border rounded-2xl p-3" required>
-        {% for template in templates %}
-          <option value="{{ template.id }}" {% if service.template_id == template.id %}selected{% endif %}>{{ template.category.name }} / {{ template.name }}</option>
+        {% for category, category_templates in grouped_templates.items %}
+          {% if category %}
+            <optgroup label="{{ category.icon }} {{ category.name }}">
+              {% for template in category_templates %}
+                <option value="{{ template.id }}" {% if service.template_id == template.id %}selected{% endif %}>{{ template.name }}</option>
+              {% endfor %}
+            </optgroup>
+          {% else %}
+            <optgroup label="بدون دسته‌بندی">
+              {% for template in category_templates %}
+                <option value="{{ template.id }}" {% if service.template_id == template.id %}selected{% endif %}>{{ template.name }}</option>
+              {% endfor %}
+            </optgroup>
+          {% endif %}
         {% endfor %}
       </select>
     </label>

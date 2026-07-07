@@ -1,24 +1,531 @@
-{% extends 'base.html' %}{% block title %}پلن‌های اشتراک{% endblock %}{% block content %}<div
-    class="max-w-6xl mx-auto px-4 py-10">
-    <h1 class="text-3xl font-black mb-2">انتخاب یا تمدید پلن</h1>
-    <p class="text-stone-500 mb-8">قیمت تمدید همیشه از دیتابیس پلن خوانده می‌شود؛ حتی اگر پلن اولیه رایگان بوده باشد.
-    </p>
-    <div class="grid md:grid-cols-3 gap-6">{% for plan in plans %}<form method="post"
-            class="bg-white rounded-3xl shadow p-6 flex flex-col">{% csrf_token %}<input type="hidden" name="plan_id"
-                value="{{ plan.id }}">
-            <h3 class="font-black text-2xl mb-2">{{ plan.name }}</h3>
-            <p class="text-stone-500 text-sm mb-4">{{ plan.description|truncatewords:18 }}</p>
-            <div class="text-3xl font-black text-[#FB9D90] mb-1">{{ plan.price }} تومان</div>
-            <div class="text-sm text-stone-500 mb-4">{{ plan.duration_days }} روز</div>
-            <ul class="text-sm space-y-2 mb-6 flex-1">
-                <li>{% if plan.can_accept_deposits %}✅{% else %}—{% endif %} پذیرش بیعانه</li>
-                <li>{% if plan.can_use_sms %}✅{% else %}—{% endif %} ارسال SMS</li>
-                <li>{% if plan.can_manage_products %}✅{% else %}—{% endif %} مدیریت محصولات</li>
-                <li>{% if plan.can_view_statistics %}✅{% else %}—{% endif %} مشاهده آمار</li>
-                <li>{% if plan.can_create_discounts %}✅{% else %}—{% endif %} ایجاد تخفیف</li>
-                <li>{% if plan.can_use_loyalty %}✅{% else %}—{% endif %} برنامه وفاداری</li>
-            </ul><button class="w-full bg-[#FDCCC5] text-white py-3 rounded-2xl hover:bg-[#FB9D90] transition">انتخاب
-                پلن</button>
-        </form>{% empty %}<div class="col-span-3 bg-white rounded-3xl shadow p-6 text-center text-stone-500">پلنی وجود
-            ندارد</div>{% endfor %}</div>
-</div>{% endblock %}
+{% extends 'base.html' %}
+{% block title %}انتخاب پلن درخشش{% endblock %}
+{% block content %}
+
+<style>
+    :root {
+        --starter-color: #10b981;
+        --professional-color: #8b5cf6;
+        --premium-color: #f59e0b;
+        --starter-gradient: linear-gradient(135deg, #34d399, #059669);
+        --professional-gradient: linear-gradient(135deg, #a78bfa, #7c3aed);
+        --premium-gradient: linear-gradient(135deg, #fbbf24, #d97706);
+    }
+
+    .rtl-wrapper {
+        direction: rtl;
+        font-family: system-ui, -apple-system, sans-serif;
+        background: #f8fafc;
+        min-height: 100vh;
+        padding: 1.5rem 1rem;
+    }
+
+    /* هدر */
+    .plans-header {
+        text-align: center;
+        max-width: 600px;
+        margin: 0 auto 2rem;
+    }
+
+    .plans-header h1 {
+        font-size: 1.65rem;
+        font-weight: 900;
+        color: #0f172a;
+        margin-bottom: 0.5rem;
+    }
+
+    .plans-header h1 span {
+        background: linear-gradient(135deg, #ec4899, #8b5cf6);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .plans-header p {
+        color: #94a3b8;
+        font-size: 0.9rem;
+    }
+
+    /* ============================================================ */
+    /*                    تنظیمات دسکتاپ (پیش‌فرض)                    */
+    /* ============================================================ */
+    .pricing-grid {
+        display: flex;
+        overflow-x: auto;
+        gap: 1.5rem;
+        max-width: 100%;
+        margin: 0 auto;
+        padding: 0 2rem 2rem;
+        scroll-snap-type: x mandatory;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: thin;
+        scrollbar-color: #cbd5e1 #f1f5f9;
+    }
+
+    .pricing-grid::-webkit-scrollbar {
+        height: 8px;
+    }
+
+    .pricing-grid::-webkit-scrollbar-track {
+        background: #f1f5f9;
+        border-radius: 10px;
+    }
+
+    .pricing-grid::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 10px;
+    }
+
+    .pricing-grid::-webkit-scrollbar-thumb:hover {
+        background: #94a3b8;
+    }
+
+    .pricing-card-wrapper {
+        flex: 0 0 240px;
+        scroll-snap-align: start;
+        min-width: 0;
+    }
+
+    .pricing-card {
+        background: white;
+        border-radius: 20px;
+        padding: 1rem 0.9rem;
+        border: 1px solid #e2e8f0;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+        transition: all 0.3s ease;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        position: relative;
+    }
+
+    .pricing-card:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 16px 40px rgba(0,0,0,0.08);
+    }
+
+    .pricing-card.featured {
+        box-shadow: 0 8px 30px rgba(139, 92, 246, 0.18);
+    }
+
+    .pricing-card.featured:hover {
+        transform: translateY(-6px);
+    }
+
+    .popular-badge {
+        position: absolute;
+        top: -10px;
+        right: 10px;
+        background: var(--professional-gradient);
+        color: white;
+        font-size: 10px;
+        font-weight: 800;
+        padding: 3px 10px;
+        border-radius: 10px;
+        letter-spacing: 0.5px;
+        white-space: nowrap;
+        z-index: 10;
+    }
+
+    .plan-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 0.6rem;
+    }
+
+    .plan-icon {
+        font-size: 1.4rem;
+    }
+
+    .plan-title {
+        font-size: 0.85rem;
+        font-weight: 800;
+        color: #0f172a;
+    }
+
+    .plan-subtitle {
+        font-size: 0.6rem;
+        color: #94a3b8;
+        font-weight: 600;
+    }
+
+    .plan-price {
+        background: #f8fafc;
+        border-radius: 10px;
+        padding: 0.4rem 0.5rem;
+        margin-bottom: 0.8rem;
+        text-align: center;
+        border: 1px solid #f1f5f9;
+    }
+
+    .plan-price .amount {
+        font-size: 1.2rem;
+        font-weight: 900;
+        color: #0f172a;
+    }
+
+    .plan-price .currency {
+        font-size: 0.6rem;
+        color: #94a3b8;
+        font-weight: 700;
+    }
+
+    .plan-price .duration {
+        font-size: 0.55rem;
+        color: #94a3b8;
+        margin-top: 1px;
+    }
+
+    .features-list {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+        margin-bottom: 0.8rem;
+        min-height: 120px;
+    }
+
+    .feature-item {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        font-size: 0.7rem;
+    }
+
+    .feature-check {
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 8px;
+        flex-shrink: 0;
+        background: #ecfdf5;
+        color: #059669;
+    }
+
+    .feature-check.inactive {
+        background: #fef2f2;
+        color: #dc2626;
+    }
+
+    .feature-text.inactive {
+        color: #94a3b8;
+        text-decoration: line-through;
+    }
+
+    .cta-btn {
+        width: 100%;
+        padding: 8px;
+        border: none;
+        border-radius: 10px;
+        font-size: 0.75rem;
+        font-weight: 800;
+        color: white;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .cta-btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+    }
+
+    .btn-starter { background: var(--starter-gradient); }
+    .btn-professional { background: var(--professional-gradient); }
+    .btn-premium { background: var(--premium-gradient); }
+
+    /* ============================================================ */
+    /*                    تنظیمات تبلت (اسلایدر)                    */
+    /* ============================================================ */
+    @media (max-width: 1023px) and (min-width: 768px) {
+        .pricing-grid {
+            gap: 1.2rem;
+            padding: 0 1.5rem 1.5rem;
+        }
+
+        .pricing-card-wrapper {
+            flex: 0 0 280px;
+        }
+    }
+
+    /* ============================================================ */
+    /*                    تنظیمات موبایل (Carousel)                  */
+    /* ============================================================ */
+    @media (max-width: 767px) {
+        .rtl-wrapper {
+            padding: 1rem 0.8rem;
+        }
+
+        .plans-header h1 {
+            font-size: 1.45rem;
+        }
+
+        .plans-header p {
+            font-size: 0.82rem;
+        }
+
+        .pricing-grid {
+            display: flex;
+            overflow-x: auto;
+            gap: 16px;
+            padding: 10px 20px 20px;
+            scroll-snap-type: x mandatory;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+            max-width: 100%;
+        }
+
+        .pricing-grid::-webkit-scrollbar {
+            display: none;
+        }
+
+        .pricing-card-wrapper {
+            flex: 0 0 78%;
+            scroll-snap-align: center;
+            min-width: 0;
+        }
+
+        .pricing-card {
+            height: auto;
+            padding: 1rem 0.95rem;
+            border-radius: 18px;
+        }
+
+        .pricing-card.featured {
+            border-width: 1px;
+        }
+
+        .popular-badge {
+            font-size: 9px;
+            padding: 3px 14px;
+            top: -10px;
+        }
+
+        .plan-icon { font-size: 1.7rem; }
+        .plan-title { font-size: 0.97rem; }
+        .plan-subtitle { font-size: 0.65rem; }
+        .plan-price .amount { font-size: 1.35rem; }
+        .plan-price { padding: 0.5rem 0.6rem; }
+        .feature-item { font-size: 0.73rem; gap: 6px; }
+        .feature-check { width: 15px; height: 15px; font-size: 8.5px; }
+        .features-list { min-height: 120px; gap: 4px; }
+        .cta-btn { padding: 10px; font-size: 0.8rem; }
+
+        /* کارت‌های کناری کمی کوچکتر و نیمه‌نما */
+        .pricing-card-wrapper:not(:nth-child(2)) {
+            opacity: 0.85;
+            transform: scale(0.92);
+        }
+    }
+
+    /* ============================================================ */
+    /*                    تنظیمات موبایل کوچک                       */
+    /* ============================================================ */
+    @media (max-width: 480px) {
+        .pricing-card-wrapper {
+            flex: 0 0 85%;
+        }
+
+        .pricing-card {
+            padding: 0.8rem 0.7rem;
+        }
+
+        .plan-icon { font-size: 1.4rem; }
+        .plan-title { font-size: 0.85rem; }
+        .plan-price .amount { font-size: 1.2rem; }
+        .feature-item { font-size: 0.68rem; }
+        .features-list { min-height: 100px; }
+        .cta-btn { font-size: 0.75rem; padding: 8px; }
+    }
+</style>
+
+<div class="rtl-wrapper">
+    <div class="plans-header">
+        <h1>ارتقای سالن با <span>پلن‌های درخشش</span></h1>
+        <p>سطح دسترسی خود را انتخاب کنید و از امکانات ویژه بهره‌مند شوید</p>
+    </div>
+
+    <div class="pricing-grid" id="pricingGrid">
+        
+        <!-- استارتر -->
+        <div class="pricing-card-wrapper">
+            <form method="post" class="pricing-card">
+                {% csrf_token %}
+                <input type="hidden" name="plan_id" value="{{ plans.0.id }}">
+
+                <div class="plan-header">
+                    <span class="plan-icon">🌱</span>
+                    <div>
+                        <div class="plan-title">استارتر</div>
+                        <div class="plan-subtitle">۲ ویژگی پایه</div>
+                    </div>
+                </div>
+
+                <div class="plan-price">
+                    <span class="amount">{{ plans.0.price }}</span>
+                    <span class="currency">تومان</span>
+                    <span class="duration">{{ plans.0.duration_days }} روز</span>
+                </div>
+
+                <div class="features-list">
+                    <div class="feature-item">
+                        <span class="feature-check {% if not plans.0.can_accept_deposits %}inactive{% endif %}">
+                            {% if plans.0.can_accept_deposits %}✓{% else %}✕{% endif %}
+                        </span>
+                        <span class="feature-text {% if not plans.0.can_accept_deposits %}inactive{% endif %}">دریافت بیعانه نوبت</span>
+                    </div>
+                    <div class="feature-item">
+                        <span class="feature-check {% if not plans.0.can_use_sms %}inactive{% endif %}">
+                            {% if plans.0.can_use_sms %}✓{% else %}✕{% endif %}
+                        </span>
+                        <span class="feature-text {% if not plans.0.can_use_sms %}inactive{% endif %}">پیامک یادآوری</span>
+                    </div>
+                    <!-- ویژگی‌های خالی برای هم‌ترازی -->
+                    <div class="feature-item" style="visibility:hidden;">
+                        <span class="feature-check">✓</span>
+                        <span class="feature-text">محتوای مخفی</span>
+                    </div>
+                    <div class="feature-item" style="visibility:hidden;">
+                        <span class="feature-check">✓</span>
+                        <span class="feature-text">محتوای مخفی</span>
+                    </div>
+                </div>
+
+                <button type="submit" class="cta-btn btn-starter">انتخاب استارتر</button>
+            </form>
+        </div>
+
+        <!-- پروفشنال (محبوب) -->
+        <div class="pricing-card-wrapper">
+            <form method="post" class="pricing-card featured">
+                {% csrf_token %}
+                <input type="hidden" name="plan_id" value="{{ plans.1.id }}">
+
+                <div class="plan-header">
+                    <span class="plan-icon">⭐</span>
+                    <div>
+                        <div class="plan-title">پروفشنال</div>
+                        <div class="plan-subtitle">۴ ویژگی کامل</div>
+                    </div>
+                </div>
+
+                <div class="plan-price">
+                    <span class="amount">{{ plans.1.price }}</span>
+                    <span class="currency">تومان</span>
+                    <span class="duration">{{ plans.1.duration_days }} روز</span>
+                </div>
+
+                <div class="features-list">
+                    <div class="feature-item">
+                        <span class="feature-check">✓</span>
+                        <span class="feature-text">دریافت بیعانه نوبت</span>
+                    </div>
+                    <div class="feature-item">
+                        <span class="feature-check">✓</span>
+                        <span class="feature-text">پیامک یادآوری</span>
+                    </div>
+                    <div class="feature-item">
+                        <span class="feature-check {% if not plans.1.can_show_portfolio %}inactive{% endif %}">
+                            {% if plans.1.can_show_portfolio %}✓{% else %}✕{% endif %}
+                        </span>
+                        <span class="feature-text {% if not plans.1.can_show_portfolio %}inactive{% endif %}">ویترین نمونه‌کارها</span>
+                    </div>
+                    <div class="feature-item">
+                        <span class="feature-check {% if not plans.1.can_show_on_homepage %}inactive{% endif %}">
+                            {% if plans.1.can_show_on_homepage %}✓{% else %}✕{% endif %}
+                        </span>
+                        <span class="feature-text {% if not plans.1.can_show_on_homepage %}inactive{% endif %}">تبلیغات صفحه اول</span>
+                    </div>
+                </div>
+
+                <button type="submit" class="cta-btn btn-professional">انتخاب پروفشنال</button>
+            </form>
+        </div>
+
+        <!-- پریمیوم -->
+        <div class="pricing-card-wrapper">
+            <form method="post" class="pricing-card">
+                {% csrf_token %}
+                <input type="hidden" name="plan_id" value="{{ plans.2.id }}">
+
+                <div class="plan-header">
+                    <span class="plan-icon">👑</span>
+                    <div>
+                        <div class="plan-title">پریمیوم</div>
+                        <div class="plan-subtitle">۶ ویژگی ویژه</div>
+                    </div>
+                </div>
+
+                <div class="plan-price">
+                    <span class="amount">{{ plans.2.price }}</span>
+                    <span class="currency">تومان</span>
+                    <span class="duration">{{ plans.2.duration_days }} روز</span>
+                </div>
+
+                <div class="features-list">
+                    <div class="feature-item">
+                        <span class="feature-check">✓</span>
+                        <span class="feature-text">دریافت بیعانه نوبت</span>
+                    </div>
+                    <div class="feature-item">
+                        <span class="feature-check">✓</span>
+                        <span class="feature-text">پیامک یادآوری</span>
+                    </div>
+                    <div class="feature-item">
+                        <span class="feature-check">✓</span>
+                        <span class="feature-text">ویترین نمونه‌کارها</span>
+                    </div>
+                    <div class="feature-item">
+                        <span class="feature-check">✓</span>
+                        <span class="feature-text">تبلیغات صفحه اول</span>
+                    </div>
+                    <div class="feature-item">
+                        <span class="feature-check {% if not plans.2.can_use_loyalty %}inactive{% endif %}">
+                            {% if plans.2.can_use_loyalty %}✓{% else %}✕{% endif %}
+                        </span>
+                        <span class="feature-text {% if not plans.2.can_use_loyalty %}inactive{% endif %}">باشگاه وفاداری</span>
+                    </div>
+                    <div class="feature-item">
+                        <span class="feature-check">✓</span>
+                        <span class="feature-text">پشتیبانی ۲۴/۷</span>
+                    </div>
+                </div>
+
+                <button type="submit" class="cta-btn btn-premium">انتخاب پریمیوم</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    // اسکرول به کارت وسط در بارگذاری اولیه
+    function centerFeaturedCard() {
+        const grid = document.getElementById('pricingGrid');
+        const featured = grid.querySelector('.featured');
+        if (featured) {
+            const wrapper = featured.parentElement;
+            // اسکرول با کمی تاخیر برای اطمینان از رندر کامل
+            setTimeout(() => {
+                wrapper.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+            }, 100);
+        }
+    }
+
+    // اجرا در لود و تغییر اندازه
+    window.addEventListener('load', centerFeaturedCard);
+    window.addEventListener('resize', centerFeaturedCard);
+
+    // اگر کاربر روی دکمه‌ها کلیک کرد، اسکرول به بالا برای نمایش بهتر
+    document.querySelectorAll('.cta-btn').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            // کمی تاخیر برای نمایش پیام
+            setTimeout(() => {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }, 200);
+        });
+    });
+</script>
+
+{% endblock %}

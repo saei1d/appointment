@@ -205,21 +205,68 @@ def book_service(request, slug, service_id):
 
 @login_required
 def service_list(request):
-    provider = get_object_or_404(Provider, user=request.user); return render(request, 'providers/service_list.html', {'provider': provider, 'services': provider.services.select_related('template__category')})
+    provider = get_object_or_404(Provider, user=request.user)
+    services = provider.services.select_related('template__category')
+    
+    # Group services by category
+    categories = {}
+    for service in services:
+        category = service.category
+        if category:
+            if category not in categories:
+                categories[category] = []
+            categories[category].append(service)
+        else:
+            # Services without category
+            if None not in categories:
+                categories[None] = []
+            categories[None].append(service)
+    
+    # Get selected category from query params
+    selected_category_slug = request.GET.get('category', '')
+    selected_category = None
+    if selected_category_slug:
+        try:
+            selected_category = ServiceCategory.objects.get(slug=selected_category_slug)
+        except ServiceCategory.DoesNotExist:
+            selected_category = None
+    
+    return render(request, 'providers/service_list.html', {
+        'provider': provider,
+        'services': services,
+        'grouped_services': categories,
+        'selected_category': selected_category
+    })
 
 @login_required
 def service_create(request):
     provider = get_object_or_404(Provider, user=request.user); templates = ServiceTemplate.objects.filter(is_active=True).select_related('category')
+    # Group templates by category
+    from collections import defaultdict
+    grouped_templates = defaultdict(list)
+    for template in templates:
+        if template.category:
+            grouped_templates[template.category].append(template)
+        else:
+            grouped_templates[None].append(template)
     if request.method == 'POST':
         template = get_object_or_404(ServiceTemplate, id=request.POST['template'], is_active=True); Service.objects.create(provider=provider, template=template, name=template.name, description=request.POST.get('description', template.description), price=request.POST['price'], duration=request.POST.get('duration') or template.suggested_duration, deposit_amount=request.POST.get('deposit_amount', 0)); messages.success(request, 'خدمت با موفقیت ایجاد شد'); return redirect('service_list')
-    return render(request, 'providers/service_form.html', {'provider': provider, 'templates': templates})
+    return render(request, 'providers/service_form.html', {'provider': provider, 'templates': templates, 'grouped_templates': dict(grouped_templates)})
 
 @login_required
 def service_edit(request, service_id):
     provider = get_object_or_404(Provider, user=request.user); service = get_object_or_404(Service, id=service_id, provider=provider); templates = ServiceTemplate.objects.filter(is_active=True).select_related('category')
+    # Group templates by category
+    from collections import defaultdict
+    grouped_templates = defaultdict(list)
+    for template in templates:
+        if template.category:
+            grouped_templates[template.category].append(template)
+        else:
+            grouped_templates[None].append(template)
     if request.method == 'POST':
         template = get_object_or_404(ServiceTemplate, id=request.POST['template'], is_active=True); service.template = template; service.name = template.name; service.description = request.POST.get('description', ''); service.price = request.POST['price']; service.duration = request.POST['duration']; service.deposit_amount = request.POST.get('deposit_amount', 0); service.is_active = bool(request.POST.get('is_active')); service.save(); messages.success(request, 'خدمت با موفقیت ویرایش شد'); return redirect('service_list')
-    return render(request, 'providers/service_form.html', {'provider': provider, 'service': service, 'templates': templates})
+    return render(request, 'providers/service_form.html', {'provider': provider, 'service': service, 'templates': templates, 'grouped_templates': dict(grouped_templates)})
 
 @login_required
 def service_delete(request, service_id):
