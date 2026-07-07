@@ -20,6 +20,10 @@ def otp_auth(request):
             if not phone:
                 return render(request, 'accounts/otp.html', {'error': 'Phone number is required'})
             
+            # Check if user already exists and get their data
+            user = User.objects.filter(phone=phone).first()
+            user_exists = user is not None
+            
             # Generate 5-digit OTP
             otp_code = str(random.randint(10000, 99999))
             expires_at = timezone.now() + timedelta(minutes=5)
@@ -31,7 +35,14 @@ def otp_auth(request):
             # Print OTP for testing (in production, send via SMS)
             print(f'OTP for {phone}: {otp_code}')
             
-            return render(request, 'accounts/otp.html', {'phone': phone, 'otp_sent': True, 'next': next_url})
+            return render(request, 'accounts/otp.html', {
+                'phone': phone, 
+                'otp_sent': True, 
+                'next': next_url, 
+                'user_exists': user_exists,
+                'has_fullname': user and user.fullname,
+                'has_city': user and user.city
+            })
         
         # Step 2: Verify OTP
         else:
@@ -107,4 +118,18 @@ def customer_dashboard(request):
     today = timezone.localdate()
     appointments = request.user.appointments.select_related('provider__user', 'service').order_by('-date', '-start_time')[:10]
     upcoming_count = request.user.appointments.filter(date__gte=today, status__in=['pending', 'confirmed']).count()
+    
+    if request.method == 'POST':
+        city = request.POST.get('city', '').strip()
+        fullname = request.POST.get('fullname', '').strip()
+        
+        if city:
+            request.user.city = city
+        if fullname:
+            request.user.fullname = fullname
+        
+        request.user.save()
+        messages.success(request, 'اطلاعات شما با موفقیت به‌روزرسانی شد.')
+        return redirect('customer_dashboard')
+    
     return render(request, 'accounts/customer_dashboard.html', {'appointments': appointments, 'upcoming_count': upcoming_count})

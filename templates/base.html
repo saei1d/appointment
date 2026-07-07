@@ -1,23 +1,175 @@
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
-  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{% block title %}نوبتینو{% endblock %}</title>
-  <script src="https://cdn.tailwindcss.com"></script><script src="https://unpkg.com/htmx.org@1.9.10"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/htmx.org@1.9.10"></script>
   <style>
-    @font-face{font-family:Razan;src:url('/media/fonts/Razan.woff2') format('woff2'),url('/media/fonts/Razan.ttf') format('truetype');font-display:swap}
-    @font-face{font-family:Lalezar;src:url('/media/fonts/Lalezar.woff2') format('woff2'),url('/media/fonts/Lalezar.ttf') format('truetype');font-display:swap}
-    body{font-family:Razan,ui-sans-serif,system-ui;background:linear-gradient(180deg,#fff8f5,#f7f1ea)} .brand{font-family:Lalezar,Razan,sans-serif}.snap-x{scroll-snap-type:x mandatory}.snap-card{scroll-snap-align:start}
+
+    @font-face {
+      font-family: 'Lalezar';
+      src: url('/media/fonts/Lalezar-Font/TTF/Lalezar-Regular.ttf') format('woff2'),
+           url('/media/fonts/Lalezar.ttf') format('truetype');
+      font-display: swap;
+    }
+    
+    * {
+      font-family: 'Razan', ui-sans-serif, system-ui, sans-serif;
+    }
+    
+    body {
+      background: #fafafa;
+      color: #1a1a1a;
+    }
+    
+    .brand {
+      font-family: 'Lalezar', 'Razan', sans-serif;
+    }
+    
+    .snap-x {
+      scroll-snap-type: x mandatory;
+    }
+    
+    .snap-card {
+      scroll-snap-align: start;
+    }
+    
+    /* رنگ‌های سفارشی */
+    .bg-primary {
+      background-color: #FDCCC5;
+    }
+    
+    .bg-secondary {
+      background-color: #FB9D90;
+    }
+    
+    .text-primary {
+      color: #FDCCC5;
+    }
+    
+    .text-secondary {
+      color: #FB9D90;
+    }
+    
+    .hover\:bg-primary:hover {
+      background-color: #FDCCC5;
+    }
+    
+    .hover\:bg-secondary:hover {
+      background-color: #FB9D90;
+    }
+    
+    /* اسکرول مخفی */
+    .scrollbar-hide::-webkit-scrollbar {
+      height: 0;
+      width: 0;
+    }
+    
+    .scrollbar-hide {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
   </style>
 </head>
-<body class="text-[#261f1b] antialiased">
-  <div class="mx-auto min-h-screen max-w-[430px] bg-[#fffaf7] shadow-2xl">
-    <nav class="sticky top-0 z-40 border-b border-black/5 bg-white/85 px-4 py-3 backdrop-blur">
-      <div class="flex items-center justify-between"><a class="brand text-3xl text-pink-600" href="{% url 'home' %}">نوبتینو</a><div class="flex items-center gap-2 text-xs">{% if user.is_authenticated %}<a class="rounded-full bg-stone-900 px-4 py-2 text-white" href="{% if user.is_provider_role %}{% url 'provider_dashboard' %}{% else %}{% url 'customer_dashboard' %}{% endif %}">داشبورد</a><form method="post" action="{% url 'logout' %}">{% csrf_token %}<button class="text-stone-500">خروج</button></form>{% else %}<a class="rounded-full bg-pink-500 px-4 py-2 text-white" href="{% url 'otp_auth' %}">ورود</a>{% endif %}</div></div>
+<body>
+  <div class="mx-auto flex min-h-screen max-w-[430px] flex-col bg-[#fafafa] shadow-2xl">
+    {% block header %}
+    <!-- نوار ناوبری -->
+    <nav class="sticky top-0 z-40 border-b border-[#FDCCC5]/20 bg-white/95 px-4 py-3 backdrop-blur-md shadow-sm">
+      <div class="flex items-center justify-between">
+        <a class="brand text-3xl text-[#FB9D90]" href="{% url 'home' %}">نوبتینو</a>
+        <div class="flex items-center gap-2 text-xs">
+          {% if user.is_authenticated %}
+            <a class="rounded-full bg-[#FB9D90] px-4 py-2 text-white hover:bg-[#FDCCC5] transition-colors"
+               href="{% if user.is_provider_role %}{% url 'provider_dashboard' %}{% else %}{% url 'customer_dashboard' %}{% endif %}">
+              داشبورد
+            </a>
+            <!-- منو همبرگری -->
+            <div class="relative">
+              <button onclick="toggleMenu()" class="p-2 rounded-full hover:bg-[#FDCCC5]/20 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-stone-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+              </button>
+              <!-- منو کشویی -->
+              <div id="userMenu" class="hidden absolute left-0 top-12 w-48 rounded-2xl bg-white shadow-xl border border-[#FDCCC5]/20 overflow-hidden">
+                <div class="p-3 border-b border-[#FDCCC5]/10">
+                  <p class="text-xs text-stone-500 mb-1">سلام</p>
+                  <p class="text-sm font-semibold text-stone-700">{{ user.fullname|default:user.phone }}</p>
+                </div>
+                <a href="#" class="w-full px-4 py-3 text-right text-sm text-stone-700 hover:bg-[#FDCCC5]/20 transition-colors flex items-center justify-between border-b border-[#FDCCC5]/10">
+                  <span>پشتیبانی</span>
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-[#FB9D90]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                  </svg>
+                </a>
+                <form method="post" action="{% url 'logout' %}">
+                  {% csrf_token %}
+                  <button class="w-full px-4 py-3 text-right text-sm text-[#FB9D90] hover:bg-[#FDCCC5]/20 transition-colors">
+                    خروج
+                  </button>
+                </form>
+              </div>
+            </div>
+          {% else %}
+            <a class="rounded-full bg-[#FB9D90] px-4 py-2 text-white hover:bg-[#FDCCC5] transition-colors"
+               href="{% url 'otp_auth' %}">ورود</a>
+          {% endif %}
+        </div>
+      </div>
     </nav>
-    {% if messages %}<div class="space-y-2 p-4">{% for message in messages %}<div class="rounded-2xl border bg-white p-3 text-sm shadow">{{ message }}</div>{% endfor %}</div>{% endif %}
-    <main class="pb-8">{% block content %}{% endblock %}</main>
-    <footer class="mx-4 mb-4 rounded-[2rem] bg-stone-950 p-6 text-white"><b class="brand text-3xl text-pink-200">نوبتینو</b><p class="mt-2 text-sm text-white/70">رزرو سریع خدمات زیبایی در شهر شما.</p><div class="mt-5 grid grid-cols-2 gap-2 text-sm text-white/70"><a href="{% url 'onboarding_welcome' %}">شروع سریع</a><a href="{% url 'provider_register' %}">ثبت متخصص</a><a href="{% url 'customer_bookings' %}">رزروهای من</a><a href="/blog/">بلاگ</a></div></footer>
+    {% endblock %}
+
+    <!-- پیام‌ها -->
+    {% block base_messages %}
+    {% if messages %}
+    <div class="space-y-2 p-4">
+      {% for message in messages %}
+      <div class="rounded-2xl border border-[#FDCCC5]/30 bg-white p-3 text-sm shadow-sm">
+        {{ message }}
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+    {% endblock %}
+
+    <!-- محتوای اصلی -->
+    <main class="flex-1 pb-8">{% block content %}{% endblock %}</main>
+
+    <!-- فوتر -->
+    {% block footer %}
+    <footer class="rounded-[2rem] bg-gradient-to-br from-[#FB9D90] to-[#FDCCC5] p-6 shadow-lg">
+      <b class="brand text-3xl text-white">نوبتینو</b>
+      <p class="mt-2 text-sm text-white/90">رزرو سریع خدمات زیبایی در شهر شما.</p>
+      <div class="mt-5 grid grid-cols-2 gap-3 text-sm">
+        <a href="{% url 'onboarding_welcome' %}" class="text-white/90 hover:text-white transition-colors bg-white/10 px-3 py-1.5 rounded-full text-center">شروع سریع</a>
+        <a href="{% url 'provider_register' %}" class="text-white/90 hover:text-white transition-colors bg-white/10 px-3 py-1.5 rounded-full text-center">ثبت متخصص</a>
+        <a href="{% url 'customer_bookings' %}" class="text-white/90 hover:text-white transition-colors bg-white/10 px-3 py-1.5 rounded-full text-center">رزروهای من</a>
+        <a href="/blog/" class="text-white/90 hover:text-white transition-colors bg-white/10 px-3 py-1.5 rounded-full text-center">بلاگ</a>
+      </div>
+      <div class="mt-4 pt-4 border-t border-white/20 text-center text-xs text-white/70">
+        © ۱۴۰۴ نوبتینو - تمامی حقوق محفوظ است
+      </div>
+    </footer>
+    {% endblock %}
   </div>
+
+  <script>
+    function toggleMenu() {
+      const menu = document.getElementById('userMenu');
+      menu.classList.toggle('hidden');
+    }
+
+    // بستن منو با کلیک بیرون
+    document.addEventListener('click', function(event) {
+      const menu = document.getElementById('userMenu');
+      const button = event.target.closest('button');
+      if (menu && !menu.contains(event.target) && (!button || !button.onclick)) {
+        menu.classList.add('hidden');
+      }
+    });
+  </script>
 </body>
 </html>

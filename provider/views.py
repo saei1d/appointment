@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+import json
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ValidationError
@@ -8,7 +9,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.dateparse import parse_date
-from reservations.models import Appointment, WorkingHour
+from reservations.models import Appointment, WorkingHour, SpecialWorkingHour
 from reservations.services.availability import generate_available_slots
 from reservations.services.booking import create_appointment
 from provider.models import Provider, Service, ServiceCategory, ServiceTemplate, GalleryItem
@@ -24,7 +25,21 @@ def _can_accept_bookings(provider):
 def home(request):
     q = request.GET.get('q', '').strip()
     user_city = request.user.city if request.user.is_authenticated else ''
-    categories = ServiceCategory.objects.filter(is_active=True).annotate(provider_count=Count('templates__provider_services__provider', distinct=True))[:8]
+    
+    # Handle city selection
+    if request.method == 'POST' and request.user.is_authenticated:
+        selected_city = request.POST.get('city', '').strip()
+        if selected_city:
+            request.user.city = selected_city
+            request.user.save(update_fields=['city', 'updated_at'])
+            user_city = selected_city
+        return redirect('home')
+    
+    # Cities are now static in the template
+    
+    categories = ServiceCategory.objects.filter(is_active=True).order_by('sort_order', 'name')[:8]
+    templates = ServiceTemplate.objects.filter(is_active=True).select_related('category')[:8]
+    popular_services = Service.objects.filter(is_active=True).annotate(booking_count=Count('appointments')).order_by('-booking_count', '-created_at')[:8]
     providers = Provider.objects.select_related('user').prefetch_related('services')
     if user_city:
         providers = providers.filter(city=user_city)
@@ -35,7 +50,7 @@ def home(request):
         upcoming = request.user.appointments.select_related('provider__user', 'service').filter(date__gte=timezone.localdate(), status__in=[Appointment.Status.PENDING, Appointment.Status.CONFIRMED]).order_by('date', 'start_time').first()
     city_services = Service.objects.filter(is_active=True, provider__city=user_city).select_related('provider', 'template__category').distinct()[:8] if user_city else []
     latest_posts = Blog.objects.filter(is_published=True).order_by('-published_at', '-created_at')[:3]
-    return render(request, 'providers/home.html', {'providers': providers[:6], 'featured_providers': providers.order_by('-rating')[:5], 'categories': categories, 'city_services': city_services, 'latest_posts': latest_posts, 'q': q, 'upcoming': upcoming, 'user_city': user_city})
+    return render(request, 'providers/home.html', {'providers': providers[:6], 'featured_providers': providers.order_by('-rating')[:5], 'categories': categories, 'templates': templates, 'popular_services': popular_services, 'city_services': city_services, 'latest_posts': latest_posts, 'q': q, 'upcoming': upcoming, 'user_city': user_city})
 
 
 def category_providers(request, slug):
@@ -64,7 +79,8 @@ def provider_public_page(request, slug):
     provider = get_object_or_404(Provider.objects.select_related('user').prefetch_related('services__template__category', 'gallery_items', 'reviews'), slug=slug)
     services = provider.services.filter(is_active=True).select_related('template__category')
     gallery = provider.gallery_items.filter(is_active=True)[:8]
-    return render(request, 'providers/public_page.html', {'provider': provider, 'services': services, 'gallery': gallery, 'can_accept_bookings': _can_accept_bookings(provider)})
+    reviews = provider.reviews.filter(is_removed=False).select_related('customer').order_by('-created_at')[:10]
+    return render(request, 'providers/public_page.html', {'provider': provider, 'services': services, 'gallery': gallery, 'reviews': reviews, 'can_accept_bookings': _can_accept_bookings(provider)})
 
 
 def provider_gallery(request, slug):
@@ -78,7 +94,14 @@ def provider_dashboard(request):
     appointments = provider.appointments.select_related('customer', 'service')[:10]
     subscription = provider.subscriptions.select_related('plan').filter(is_active=True).order_by('-end_date').first()
     if request.method == 'POST':
-        for field in ['bio','city','theme_color','background_color','accent_color','address','contact_phone','instagram','telegram','whatsapp','google_map_url','typography']:
+        # Handle Account city (for homepage)
+        account_city = request.POST.get('account_city', '').strip()
+        if account_city:
+            request.user.city = account_city
+            request.user.save()
+        
+        # Handle other fields
+        for field in ['bio','theme_color','background_color','accent_color','address','contact_phone','instagram','telegram','whatsapp','google_map_url','typography','font_family']:
             if field in request.POST: setattr(provider, field, request.POST.get(field) or getattr(provider, field))
         if request.FILES.get('avatar'): provider.avatar = request.FILES['avatar']
         if request.FILES.get('cover_image'): provider.cover_image = request.FILES['cover_image']
@@ -89,13 +112,79 @@ def provider_dashboard(request):
 @login_required
 def working_hours(request):
     provider = get_object_or_404(Provider, user=request.user)
+    today = timezone.localdate()
+    future_dates = [today + timedelta(days=i) for i in range(10)]
+
+    def gregorian_to_jalali(gy, gm, gd):
+        g_d_m = [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334]
+        gy2 = (gy + 1) if gm > 2 else gy
+        days = 355666 + 365 * gy + (gy2 + 3) // 4 - (gy2 + 99) // 100 + (gy2 + 399) // 400 + gd + g_d_m[gm - 1]
+        jy = -1595 + 33 * (days // 12053)
+        days %= 12053
+        jy += 4 * (days // 1461)
+        days %= 1461
+        if days > 365:
+            jy += (days - 1) // 365
+            days = (days - 1) % 365
+        if days < 186:
+            jm = 1 + days // 31
+            jd = 1 + days % 31
+        else:
+            jm = 7 + (days - 186) // 30
+            jd = 1 + (days - 186) % 30
+        return jy, jm, jd
+
     if request.method == 'POST':
-        provider.working_hours.all().delete()
-        for day, _label in WorkingHour.Weekday.choices:
-            if request.POST.get(f'active_{day}'):
-                WorkingHour.objects.create(provider=provider, weekday=day, start_time=request.POST.get(f'start_{day}', '09:00'), end_time=request.POST.get(f'end_{day}', '18:00'), is_active=True)
-        messages.success(request, 'ساعات کاری ذخیره شد.'); return redirect('working_hours')
-    return render(request, 'dashboard/working_hours.html', {'provider': provider, 'weekdays': WorkingHour.Weekday.choices, 'working_hours': {h.weekday: h for h in provider.working_hours.all()}})
+        provider.special_working_hours.filter(date__gte=today, date__lte=future_dates[-1]).delete()
+        idx = 0
+        for i, dt in enumerate(future_dates):
+            date_str = dt.strftime('%Y-%m-%d')
+            active = request.POST.get(f'active_{date_str}')
+            # همیشه اسلات‌ها ذخیره شوند، اما وضعیت is_available بر اساس active تنظیم شود
+            sidx = 0
+            while True:
+                st = request.POST.get(f'start_{date_str}_{sidx}')
+                et = request.POST.get(f'end_{date_str}_{sidx}')
+                if not st or not et:
+                    break
+                try:
+                    SpecialWorkingHour.objects.create(
+                        provider=provider,
+                        date=dt,
+                        start_time=st,
+                        end_time=et,
+                        is_available=(active == 'on')
+                    )
+                except Exception:
+                    pass
+                sidx += 1
+        messages.success(request, 'ساعات کاری ذخیره شد.')
+        return redirect('working_hours')
+
+    days_data = []
+    for dt in future_dates:
+        date_str = dt.strftime('%Y-%m-%d')
+        jy, jm, jd = gregorian_to_jalali(dt.year, dt.month, dt.day)
+        special_hours = provider.special_working_hours.filter(date=dt)
+        slots = [{'start': sh.start_time.strftime('%H:%M'), 'end': sh.end_time.strftime('%H:%M')} for sh in special_hours]
+        # روز فعال است اگر حداقل یک اسلات با is_available=True داشته باشد
+        has_available_slots = special_hours.filter(is_available=True).exists()
+        weekday_num = (dt.weekday() + 2) % 7  # 0=شنبه, 1=یکشنبه, ... 6=جمعه
+        days_data.append({
+            'date': dt,
+            'date_str': date_str,
+            'jalali_date': f'{jy}/{jm:02d}/{jd:02d}',
+            'jy': jy, 'jm': jm, 'jd': jd,
+            'weekday_num': weekday_num,
+            'is_active': has_available_slots,
+            'slots': slots,
+        })
+
+    return render(request, 'dashboard/working_hours.html', {
+        'provider': provider,
+        'days_data': days_data,
+        'today_jalali': gregorian_to_jalali(today.year, today.month, today.day),
+    })
 
 
 @login_required

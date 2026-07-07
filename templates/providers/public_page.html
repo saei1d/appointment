@@ -1,8 +1,547 @@
-{% extends 'base.html' %}{% block title %}{{ provider.user.fullname }}{% endblock %}{% block content %}
-<style>:root{--theme:{{ provider.theme_color }};--bg:{{ provider.background_color }};--accent:{{ provider.accent_color }}}</style>
-<section class="p-4 space-y-5" style="background:linear-gradient(180deg,var(--bg),#fffaf7)">
-  <div class="grid grid-cols-[1fr_92px] gap-2 h-56"><div class="relative overflow-hidden rounded-[2rem]" style="background:linear-gradient(135deg,var(--theme),var(--accent))">{% if provider.cover_image %}<img class="h-full w-full object-cover" src="{{ provider.cover_image.url }}">{% endif %}<div class="absolute bottom-3 right-3 h-20 w-20 overflow-hidden rounded-full border-4 border-white bg-white shadow">{% if provider.avatar %}<img class="h-full w-full object-cover" src="{{ provider.avatar.url }}">{% else %}<div class="grid h-full place-items-center text-3xl font-black" style="color:var(--theme)">{{ provider.user.fullname|first }}</div>{% endif %}</div></div><div class="grid gap-2">{% for item in gallery|slice:':2' %}<img class="h-full w-full rounded-3xl object-cover" src="{{ item.image.url }}">{% empty %}<div class="rounded-3xl" style="background:linear-gradient(135deg,var(--theme),#fff)"></div><div class="rounded-3xl" style="background:linear-gradient(135deg,var(--accent),#fff)"></div>{% endfor %}</div></div>
-  <div><h1 class="brand text-4xl">{{ provider.user.fullname }}</h1><p class="mt-2 text-sm text-stone-600">{{ provider.bio|default:'متخصص زیبایی در نوبتینو' }}</p><p class="mt-2 text-sm">📍 {{ provider.city }}{% if provider.address %}، {{ provider.address }}{% endif %}</p><div class="mt-3 flex gap-2 text-xs"><span class="rounded-full bg-white px-3 py-2 shadow">⭐ {{ provider.rating }} از {{ provider.total_reviews }} نظر</span>{% if can_accept_bookings %}<span class="rounded-full bg-green-100 px-3 py-2 text-green-700">رزرو فعال</span>{% endif %}</div></div>
-  <div class="grid grid-cols-3 gap-2 text-center text-xs">{% if provider.contact_phone %}<a class="rounded-2xl bg-white p-3 shadow" href="tel:{{ provider.contact_phone }}">تماس</a>{% endif %}{% if provider.whatsapp %}<a class="rounded-2xl bg-white p-3 shadow" href="https://wa.me/{{ provider.whatsapp }}">واتساپ</a>{% endif %}{% if provider.google_map_url %}<a class="rounded-2xl bg-white p-3 shadow" href="{{ provider.google_map_url }}">مسیریابی</a>{% endif %}</div>
-  <section><div class="mb-3 flex items-center justify-between"><h2 class="brand text-3xl">خدمات</h2>{% if gallery %}<a class="text-xs text-pink-600" href="{% url 'provider_gallery' provider.slug %}">همه عکس‌ها</a>{% endif %}</div><div class="flex snap-x gap-3 overflow-x-auto pb-3">{% for service in services %}<article class="snap-card min-w-[82%] rounded-[1.7rem] bg-white p-4 shadow"><p class="text-xs text-pink-600">{{ service.category.name }}</p><h3 class="mt-1 text-xl font-black">{{ service.name }}</h3><p class="mt-2 line-clamp-2 text-sm text-stone-500">{{ service.description }}</p><div class="mt-4 flex items-center justify-between"><b>{{ service.price }} تومان</b><span class="text-xs">{{ service.duration }} دقیقه</span></div>{% if can_accept_bookings %}<a class="mt-4 block rounded-2xl py-3 text-center text-white" style="background:var(--theme)" href="{% url 'book_service' provider.slug service.id %}">رزرو نوبت</a>{% endif %}</article>{% empty %}<p class="text-stone-500">خدمتی ثبت نشده است.</p>{% endfor %}</div></section>
-</section>{% endblock %}
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}{{ provider.user.fullname }}{% endblock %}
+{% block content %}
+
+<style>
+  @font-face { font-family: 'Mikhak'; src: url('{% static "fonts/web/mikhak/Mikhak-Regular.woff2" %}') format('woff2'); font-weight: 400; font-style: normal; font-display: swap; }
+  @font-face { font-family: 'Mikhak'; src: url('{% static "fonts/web/mikhak/Mikhak-Medium.woff2" %}') format('woff2'); font-weight: 500; font-style: normal; font-display: swap; }
+  @font-face { font-family: 'Mikhak'; src: url('{% static "fonts/web/mikhak/Mikhak-Bold.woff2" %}') format('woff2'); font-weight: 700; font-style: normal; font-display: swap; }
+  @font-face { font-family: 'Mikhak'; src: url('{% static "fonts/web/mikhak/Mikhak-Light.woff2" %}') format('woff2'); font-weight: 300; font-style: normal; font-display: swap; }
+  @font-face { font-family: 'Mikhak'; src: url('{% static "fonts/web/mikhak/Mikhak-Thin.woff2" %}') format('woff2'); font-weight: 100; font-style: normal; font-display: swap; }
+
+  @font-face { font-family: 'Lalezar'; src: url('{% static "fonts/web/lalezar/Digi Lalezar Plus.ttf" %}') format('truetype'); font-weight: 400; font-style: normal; font-display: swap; }
+
+  @font-face { font-family: 'Razan'; src: url('{% static "fonts/web/razan/Razan-Regular.ttf" %}') format('truetype'); font-weight: 400; font-style: normal; font-display: swap; }
+  @font-face { font-family: 'Razan'; src: url('{% static "fonts/web/razan/Razan-Medium.ttf" %}') format('truetype'); font-weight: 500; font-style: normal; font-display: swap; }
+  @font-face { font-family: 'Razan'; src: url('{% static "fonts/web/razan/Razan-Bold.ttf" %}') format('truetype'); font-weight: 700; font-style: normal; font-display: swap; }
+  @font-face { font-family: 'Razan'; src: url('{% static "fonts/web/razan/Razan-Light.ttf" %}') format('truetype'); font-weight: 300; font-style: normal; font-display: swap; }
+
+  @font-face { font-family: 'MFSADU'; src: url('{% static "fonts/web/mfsadu/MFSADU-Regular.ttf" %}') format('truetype'); font-weight: 400; font-style: normal; font-display: swap; }
+  @font-face { font-family: 'MFSADU'; src: url('{% static "fonts/web/mfsadu/MFSADU-Medium.ttf" %}') format('truetype'); font-weight: 500; font-style: normal; font-display: swap; }
+  @font-face { font-family: 'MFSADU'; src: url('{% static "fonts/web/mfsadu/MFSADU-Bold.ttf" %}') format('truetype'); font-weight: 700; font-style: normal; font-display: swap; }
+  @font-face { font-family: 'MFSADU'; src: url('{% static "fonts/web/mfsadu/MFSADU-Light.ttf" %}') format('truetype'); font-weight: 300; font-style: normal; font-display: swap; }
+
+  @font-face { font-family: 'Vazir'; src: url('{% static "fonts/web/vazir/Vazir-Regular.woff2" %}') format('woff2'); font-weight: 400; font-style: normal; font-display: swap; }
+  @font-face { font-family: 'Vazir'; src: url('{% static "fonts/web/vazir/Vazir-Medium.woff2" %}') format('woff2'); font-weight: 500; font-style: normal; font-display: swap; }
+  @font-face { font-family: 'Vazir'; src: url('{% static "fonts/web/vazir/Vazir-Bold.woff2" %}') format('woff2'); font-weight: 700; font-style: normal; font-display: swap; }
+  @font-face { font-family: 'Vazir'; src: url('{% static "fonts/web/vazir/Vazir-Light.woff2" %}') format('woff2'); font-weight: 300; font-style: normal; font-display: swap; }
+
+  @font-face { font-family: 'YekanBakh'; src: url('{% static "fonts/web/yekanbakh/YekanBakh-Regular.woff2" %}') format('woff2'); font-weight: 400; font-style: normal; font-display: swap; }
+  @font-face { font-family: 'YekanBakh'; src: url('{% static "fonts/web/yekanbakh/YekanBakh-Bold.woff2" %}') format('woff2'); font-weight: 700; font-style: normal; font-display: swap; }
+  @font-face { font-family: 'YekanBakh'; src: url('{% static "fonts/web/yekanbakh/YekanBakh-Light.woff2" %}') format('woff2'); font-weight: 300; font-style: normal; font-display: swap; }
+  @font-face { font-family: 'YekanBakh'; src: url('{% static "fonts/web/yekanbakh/YekanBakh-Black.woff2" %}') format('woff2'); font-weight: 900; font-style: normal; font-display: swap; }
+
+  @font-face { font-family: 'Ravi'; src: url('{% static "fonts/web/ravi/Ravi-Regular.ttf" %}') format('truetype'); font-weight: 400; font-style: normal; font-display: swap; }
+  @font-face { font-family: 'Ravi'; src: url('{% static "fonts/web/ravi/Ravi-Medium.ttf" %}') format('truetype'); font-weight: 500; font-style: normal; font-display: swap; }
+  @font-face { font-family: 'Ravi'; src: url('{% static "fonts/web/ravi/Ravi-Bold.ttf" %}') format('truetype'); font-weight: 700; font-style: normal; font-display: swap; }
+  @font-face { font-family: 'Ravi'; src: url('{% static "fonts/web/ravi/Ravi-Light.ttf" %}') format('truetype'); font-weight: 300; font-style: normal; font-display: swap; }
+
+  :root {
+    --theme: {{ provider.theme_color|default:"#1d1a17" }};
+    --bg: {{ provider.background_color|default:"#f7f7f7" }};
+    --accent: {{ provider.accent_color|default:"#1d1a17" }};
+
+    {% if provider.font_family == 'mikhak' %}
+      --font-heading: 'Mikhak', system-ui, sans-serif;
+      --font-body: 'Mikhak', system-ui, sans-serif;
+    {% elif provider.font_family == 'lalezar' %}
+      --font-heading: 'Lalezar', system-ui, sans-serif;
+      --font-body: 'Lalezar', system-ui, sans-serif;
+    {% elif provider.font_family == 'razan' %}
+      --font-heading: 'Razan', system-ui, sans-serif;
+      --font-body: 'Razan', system-ui, sans-serif;
+    {% elif provider.font_family == 'mfsadu' %}
+      --font-heading: 'MFSADU', system-ui, sans-serif;
+      --font-body: 'MFSADU', system-ui, sans-serif;
+    {% elif provider.font_family == 'vazir' %}
+      --font-heading: 'Vazir', system-ui, sans-serif;
+      --font-body: 'Vazir', system-ui, sans-serif;
+    {% elif provider.font_family == 'yekanbakh' %}
+      --font-heading: 'YekanBakh', system-ui, sans-serif;
+      --font-body: 'YekanBakh', system-ui, sans-serif;
+    {% elif provider.font_family == 'ravi' %}
+      --font-heading: 'Ravi', system-ui, sans-serif;
+      --font-body: 'Ravi', system-ui, sans-serif;
+    {% elif provider.typography == 'serif' %}
+      --font-heading: 'IranSerif', ui-serif, Georgia, serif;
+      --font-body: 'IranSerif', ui-serif, Georgia, serif;
+    {% elif provider.typography == 'rounded' %}
+      --font-heading: 'Vazirmatn', system-ui, sans-serif;
+      --font-body: 'Vazirmatn', system-ui, sans-serif;
+    {% else %}
+      --font-heading: 'IranSans', system-ui, -apple-system, sans-serif;
+      --font-body: 'IranSans', system-ui, -apple-system, sans-serif;
+    {% endif %}
+  }
+
+  .premium-viewport {
+    font-family: var(--font-body) !important;
+    font-weight: 300;
+    color: var(--accent);
+    font-size: 1.05rem;
+    line-height: 1.7;
+  }
+
+  .premium-viewport * {
+    font-family: inherit !important;
+  }
+
+  /* تیترهای اصلی - وزن 700 برای تأکید قوی */
+  .premium-viewport h1,
+  .premium-viewport h2,
+  .premium-viewport h3,
+  .premium-viewport h4,
+  .premium-viewport h5,
+  .premium-viewport h6,
+  .premium-viewport .font-heading {
+    font-family: var(--font-heading) !important;
+    font-weight: 700;
+    line-height: 1.3;
+  }
+
+  /* تیترهای فرعی - وزن 500 برای تعادل */
+  .premium-viewport .font-medium {
+    font-weight: 500;
+  }
+
+  /* متن‌های نیمه‌ضخیم - وزن 600 برای تأکید متوسط */
+  .premium-viewport .font-semibold {
+    font-weight: 600;
+  }
+
+  /* متن‌های بدنه - وزن 300 برای خوانایی عالی */
+  .premium-viewport .font-light {
+    font-weight: 300;
+  }
+
+  /* متن‌های عادی - وزن 400 برای متن‌های استاندارد */
+  .premium-viewport .font-regular {
+    font-weight: 400;
+  }
+
+  /* متن‌های خیلی ضخیم - وزن 900 برای تأکید شدید */
+  .premium-viewport .font-black {
+    font-weight: 900;
+  }
+
+  /* بک‌گراند محیطی پویا با ترکیب رنگ پس‌زمینه انتخابی */
+  .bg-ambient {
+    min-height: 100vh;
+    background: var(--bg);
+  }
+
+  .bg-ambient::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background:
+      radial-gradient(circle at top right, var(--theme) 0%, transparent 40%),
+      radial-gradient(circle at 80% 20%, var(--accent) 0%, transparent 35%);
+    z-index: -1;
+    pointer-events: none;
+  }
+
+  /* کارت‌های گلس‌مورفیسم ارتقا یافته */
+  .glass-card {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.7) 0%, rgba(255, 255, 255, 0.4) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    backdrop-filter: blur(20px) saturate(140%);
+    -webkit-backdrop-filter: blur(20px) saturate(140%);
+    box-shadow: 
+      0 10px 30px -10px rgba(0, 0, 0, 0.04),
+      inset 0 1px 1px rgba(255, 255, 255, 0.8);
+  }
+
+  .icon-wrap {
+    background: linear-gradient(180deg, rgba(255,255,255,0.95), rgba(248,244,239,0.88));
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    color: var(--accent);
+  }
+
+  .rating-dynamic-fill {
+    background: linear-gradient(90deg, calc(var(--theme) / 0.6) 0%, var(--theme) 100%);
+  }
+
+  /* --- افکت نوری چرخان دور کارت‌های خدمات (لوکس و آرام) --- */
+  @keyframes rotateGlow {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+
+  .glowing-service-card {
+    position: relative;
+    border-radius: 28px;
+    padding: 2px; /* فضا برای ایجاد مرز نوری */
+    overflow: hidden;
+    background: var(--bg);
+  }
+
+  /* لایه نوری در حال چرخش دور کارت */
+  .glowing-service-card::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    /* ترکیب رنگ تم و رنگ تاکید برای رقص نور هماهنگ */
+    background: conic-gradient(
+      transparent, 
+      var(--theme), 
+      transparent 20%, 
+      var(--accent), 
+      transparent 40%,
+      var(--theme),
+      transparent 60%
+    );
+    animation: rotateGlow 3s linear infinite;
+    z-index: 0;
+  }
+
+  /* محتوای داخلی کارت که روی لایه نوری می‌نشیند */
+  .glowing-service-card-inner {
+    position: relative;
+    z-index: 1;
+    border-radius: 26px;
+    height: 100%;
+    width: 100%;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.7) 0%, rgba(255, 255, 255, 0.4) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    backdrop-filter: blur(20px) saturate(140%);
+    -webkit-backdrop-filter: blur(20px) saturate(140%);
+    box-shadow: 
+      0 10px 30px -10px rgba(0, 0, 0, 0.04),
+      inset 0 1px 1px rgba(255, 255, 255, 0.8);
+  }
+
+  /* گالری اسلایدری مینیمال */
+  .gallery-slider {
+    display: flex;
+    gap: 12px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    padding: 4px;
+    scrollbar-width: none;
+  }
+
+  .gallery-slider::-webkit-scrollbar {
+    display: none;
+  }
+
+  .gallery-item {
+    flex: 0 0 calc(33.333% - 8px);
+    scroll-snap-align: start;
+    aspect-ratio: 1;
+    border-radius: 16px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .gallery-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+  }
+
+  .gallery-item:hover img {
+    transform: scale(1.05);
+  }
+</style>
+
+<div class="bg-ambient antialiased premium-viewport pb-24 min-h-screen" dir="rtl">
+  
+  <!-- بخش بنر اصلی ارائه‌دهنده خدمات (Full-Width Profile Banner) -->
+  <div class="relative h-56 w-full overflow-hidden shadow-lg">
+    {% if provider.cover_image %}
+      <img src="{{ provider.cover_image.url }}" class="w-full h-full object-cover">
+      <!-- لایه گرادینت روی عکس برای برجسته‌تر شدن -->
+      <div class="absolute inset-0" style="background: linear-gradient(180deg, var(--theme)/30 0%, transparent 50%, var(--bg)/80 100%);"></div>
+    {% else %}
+      <!-- اگر بنر آپلود نکرده باشد، یک گرادینت وايد و مدرن با تلفیق رنگ تم نمایش داده می‌شود -->
+      <div class="w-full h-full" style="background: linear-gradient(135deg, var(--theme) 0%, var(--accent) 50%, var(--bg) 100%);"></div>
+      <!-- الگوی هندسی روی بنر -->
+      <div class="absolute inset-0 opacity-20" style="background-image: radial-gradient(circle at 20% 80%, var(--theme) 0%, transparent 50%), radial-gradient(circle at 80% 20%, var(--accent) 0%, transparent 50%);"></div>
+    {% endif %}
+    <!-- فید نرم پایینی برای ادغام لوکس بنر با پس‌زمینه -->
+    <div class="absolute inset-x-0 bottom-0 h-24" style="background: linear-gradient(to top, var(--bg) 0%, transparent 100%);"></div>
+  </div>
+
+  <main class="mx-auto w-full max-w-[430px] px-4 -mt-16 space-y-6 relative z-10">
+    
+    <!-- کارت هدر شیشه‌ای پروفایل -->
+    <header class="glass-card rounded-[32px] p-6 flex flex-col items-center text-center">
+      
+      <!-- ۱. بخش آواتار بزرگتر و واضح (تنظیم سایز با h-32 و w-32 صورت گرفته) -->
+      <!-- راهنما: برای ویرایش سایز آواتار، مقادیر کلاس h-32 و w-32 را به دلخواه بزرگتر (مثلا h-36) یا کوچکتر کنید -->
+      <div class="relative h-32 w-32 rounded-full p-1 bg-white/90 border border-white/70 shadow-lg overflow-hidden transition-transform duration-500 hover:scale-105">
+        <div class="h-full w-full rounded-full overflow-hidden bg-stone-50">
+          {% if provider.avatar %}
+            <img src="{{ provider.avatar.url }}" class="h-full w-full object-cover">
+          {% else %}
+            <div class="w-full h-full flex items-center justify-center text-4xl text-white font-bold" style="background: var(--theme)">
+              {{ provider.user.fullname|slice:":1" }}
+            </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- نام و بیوگرافی با استفاده از رنگ اکشن/تأکید -->
+      <div class="mt-4 space-y-1">
+        <h1 class="text-2xl font-black tracking-tight" style="color: var(--accent);">{{ provider.user.fullname }}</h1>
+        <p class="text-xs font-light tracking-wide opacity-75" style="color: var(--accent);">
+          {{ provider.bio|default:"ارائه خدمات تخصصی زیبایی و سلامت" }}
+        </p>
+      </div>
+
+      {% if can_accept_bookings %}
+        <div class="mt-3.5 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/80 border border-white/90 text-[10px] font-semibold" style="color: var(--theme)">
+          <span class="w-1.5 h-1.5 rounded-full animate-pulse" style="background-color: var(--theme)"></span>
+          نوبت‌دهی آنلاین فعال است
+        </div>
+      {% endif %}
+
+      <!-- اطلاعات موقعیت و ستاره هماهنگ با تم -->
+      <div class="mt-6 w-full pt-4 border-t border-white/40 flex items-center justify-between text-xs font-regular">
+        <div class="flex items-center gap-1 opacity-80" style="color: var(--accent);">
+          <span>📍</span>
+          <span class="truncate max-w-[200px]">{{ provider.city }}{% if provider.address %}، {{ provider.address }}{% endif %}</span>
+        </div>
+        <div class="flex items-center gap-1 bg-white/90 px-3 py-1 rounded-xl border border-white/70 font-bold" style="color: var(--accent);">
+          <span style="color: var(--theme)">★</span>
+          <span>{{ provider.rating|default:"۴.۸" }}</span>
+        </div>
+      </div>
+
+    </header>
+
+    <!-- اکشن چیس‌های شیشه‌ای مینی‌مال -->
+    <div class="glass-card rounded-[24px] p-3 grid grid-cols-5 gap-2">
+      {% if provider.contact_phone %}
+      <a href="tel:{{ provider.contact_phone }}" class="flex flex-col items-center gap-2 text-[10px] font-medium" style="color: var(--accent);">
+        <span class="icon-wrap h-10 w-10 rounded-full flex items-center justify-center">
+          <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 4h3l2 5-2 1.7a14.7 14.7 0 0 0 5.3 5.3L15 14l5 2v3a2 2 0 0 1-2.2 2A17 17 0 0 1 3 6.2 2 2 0 0 1 5 4Z"/></svg>
+        </span>
+        <span>تماس</span>
+      </a>
+      {% endif %}
+
+      {% if provider.instagram %}
+      <a href="{{ provider.instagram }}" target="_blank" class="flex flex-col items-center gap-2 text-[10px] font-medium" style="color: var(--accent);">
+        <span class="icon-wrap h-10 w-10 rounded-full flex items-center justify-center">
+          <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="18" cy="6" r="1"/></svg>
+        </span>
+        <span>اینستا</span>
+      </a>
+      {% endif %}
+
+      {% if provider.whatsapp or provider.telegram %}
+      <a href="{% if provider.whatsapp %}https://wa.me/{{ provider.whatsapp }}{% else %}https://t.me/{{ provider.telegram }}{% endif %}" class="flex flex-col items-center gap-2 text-[10px] font-medium" style="color: var(--accent);">
+        <span class="icon-wrap h-10 w-10 rounded-full flex items-center justify-center">
+          <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6.5A2.5 2.5 0 0 1 6.5 4h11A2.5 2.5 0 0 1 20 6.5v7A2.5 2.5 0 0 1 17.5 16H10l-4 4v-4H6.5A2.5 2.5 0 0 1 4 13.5v-7Z"/></svg>
+        </span>
+        <span>پیام</span>
+      </a>
+      {% endif %}
+
+      {% if provider.google_map_url %}
+      <a href="{{ provider.google_map_url }}" class="flex flex-col items-center gap-2 text-[10px] font-medium" style="color: var(--accent);">
+        <span class="icon-wrap h-10 w-10 rounded-full flex items-center justify-center">
+          <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s7-4.4 7-10a7 7 0 1 0-14 0c0 5.6 7 10 7 10Z"/><circle cx="12" cy="11" r="2.5"/></svg>
+        </span>
+        <span>لوکیشن</span>
+      </a>
+      {% endif %}
+
+      <button onclick="navigator.clipboard.writeText(window.location.href)" class="flex flex-col items-center gap-2 text-[10px] font-medium" style="color: var(--accent);">
+        <span class="icon-wrap h-10 w-10 rounded-full flex items-center justify-center">
+          <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 12v7a1 1 0 0 0 1 1h9a1 1 0 0 0 1-1v-7"/><path d="M12 16V4"/><path d="m8 8 4-4 4 4"/></svg>
+        </span>
+        <span>اشتراک</span>
+      </button>
+    </div>
+
+    <!-- گالری تصاویر اسلایدری مینیمال -->
+    {% if gallery %}
+    <section class="glass-card rounded-[24px] p-4">
+      <div class="flex items-center justify-between px-1 mb-3">
+        <h2 class="text-sm font-semibold uppercase tracking-wider opacity-70" style="color: var(--accent);">گالری تصاویر</h2>
+        <span class="text-[10px] font-mono font-light opacity-50" style="color: var(--accent);">{{ gallery|length }} PHOTOS</span>
+      </div>
+      <div class="gallery-slider">
+        {% for image in gallery %}
+          <div class="gallery-item">
+            <img src="{{ image.image.url }}" alt="Gallery image">
+          </div>
+        {% endfor %}
+      </div>
+    </section>
+    {% endif %}
+
+    <!-- ۲. منوی خدمات (با کارت‌های هوشمند دارای رقص نور دایره‌ای دور مرزها) -->
+    <section class="space-y-4">
+      <div class="flex items-center justify-between px-1">
+        <h2 class="text-sm font-semibold uppercase tracking-wider opacity-70" style="color: var(--accent);">منوی خدمات و رزرو آنلاین</h2>
+        <span class="text-[10px] font-mono font-light opacity-50" style="color: var(--accent);">{{ services|length }} SERVICES</span>
+      </div>
+      
+      {% for service in services %}
+        <!-- ردیف کارت مجهز به انیمیشن نور چرخشی حاشیه -->
+        <div class="glowing-service-card shadow-sm">
+          <article class="glowing-service-card-inner p-5">
+            <div class="flex items-start justify-between gap-4">
+              
+              <div class="space-y-1.5 max-w-[65%]">
+                <span class="inline-block text-[9px] font-semibold uppercase tracking-widest px-2 py-0.5 rounded-md bg-white/70 border border-white/50" style="color: var(--theme);">
+                  {{ service.category.name }}
+                </span>
+                <h3 class="text-lg font-bold tracking-tight leading-tight" style="color: var(--accent);">{{ service.name }}</h3>
+                <p class="text-xs font-light leading-relaxed line-clamp-2 pt-0.5 opacity-70" style="color: var(--accent);">{{ service.description }}</p>
+                
+                <div class="pt-2">
+                  <span class="inline-flex items-center text-[11px] font-medium bg-white/50 px-2 py-1 rounded-lg border border-white/30 opacity-80" style="color: var(--accent);">
+                    ⏱ {{ service.duration }} دقیقه
+                  </span>
+                </div>
+              </div>
+              
+              <div class="flex flex-col items-end justify-between min-h-[105px] text-left">
+                <div class="space-y-0.5">
+                  <span class="block text-xl font-black tracking-tight" style="color: var(--accent);">{{ service.price }}</span>
+                  <span class="text-[10px] font-light block opacity-50" style="color: var(--accent);">تومان</span>
+                </div>
+                
+                {% if can_accept_bookings %}
+                  <a href="{% url 'book_service' provider.slug service.id %}" 
+                     class="rounded-full px-4 py-2.5 text-xs font-semibold text-white shadow-md hover:opacity-90 active:scale-95 transition-all"
+                     style="background-color: var(--theme); box-shadow: 0 8px 20px -6px var(--theme);">
+                    رزرو نوبت
+                  </a>
+                {% endif %}
+              </div>
+
+            </div>
+          </article>
+        </div>
+      {% empty %}
+        <p class="text-xs font-light text-center py-8 opacity-50" style="color: var(--accent);">در حال حاضر خدماتی ثبت نشده است.</p>
+      {% endfor %}
+    </section>
+
+    <!-- نظرات مشتریان کاملاً هماهنگ با طیف رنگی اختصاصی -->
+    <section class="glass-card rounded-[32px] p-6 space-y-5">
+      <h2 class="text-sm font-semibold uppercase tracking-wider opacity-70" style="color: var(--accent);">بازخورد مشتریان</h2>
+
+      <div class="flex items-center gap-6">
+        <div>
+          <div class="text-5xl font-black tracking-tighter" style="color: var(--accent);">{{ provider.rating|default:"۴.۸" }}</div>
+          <p class="mt-1 text-[11px] font-light opacity-60" style="color: var(--accent);">از ۵ امتیاز</p>
+        </div>
+        <div class="space-y-1">
+          <div class="flex items-center text-sm" style="color: var(--theme)">
+            <span>★</span><span>★</span><span>★</span><span>★</span><span>★</span>
+          </div>
+          <p class="text-xs font-regular opacity-70" style="color: var(--accent);">{{ reviews|length }} تجربه ثبت شده</p>
+        </div>
+      </div>
+
+      <div class="space-y-2.5 text-xs font-regular pt-3 border-t border-white/30" style="color: var(--accent);">
+        <div class="grid grid-cols-[1rem_1fr_2rem] gap-3 items-center">
+          <span class="opacity-70">۵</span>
+          <div class="h-2 rounded-full bg-white/40 border border-white/20 overflow-hidden"><div class="rating-dynamic-fill h-full w-[80%]"></div></div>
+          <span class="text-left font-mono opacity-60">۸۰٪</span>
+        </div>
+        <div class="grid grid-cols-[1rem_1fr_2rem] gap-3 items-center">
+          <span class="opacity-70">۴</span>
+          <div class="h-2 rounded-full bg-white/40 border border-white/20 overflow-hidden"><div class="rating-dynamic-fill h-full w-[10%]"></div></div>
+          <span class="text-left font-mono opacity-60">۱۰٪</span>
+        </div>
+        <div class="grid grid-cols-[1rem_1fr_2rem] gap-3 items-center">
+          <span class="opacity-70">۳</span>
+          <div class="h-2 rounded-full bg-white/40 border border-white/20 overflow-hidden"><div class="rating-dynamic-fill h-full w-[5%]"></div></div>
+          <span class="text-left font-mono opacity-60">۵٪</span>
+        </div>
+        <div class="grid grid-cols-[1rem_1fr_2rem] gap-3 items-center">
+          <span class="opacity-70">۲</span>
+          <div class="h-2 rounded-full bg-white/40 border border-white/20 overflow-hidden"><div class="rating-dynamic-fill h-full w-[3%]"></div></div>
+          <span class="text-left font-mono opacity-60">۳٪</span>
+        </div>
+        <div class="grid grid-cols-[1rem_1fr_2rem] gap-3 items-center">
+          <span class="opacity-70">۱</span>
+          <div class="h-2 rounded-full bg-white/40 border border-white/20 overflow-hidden"><div class="rating-dynamic-fill h-full w-[2%]"></div></div>
+          <span class="text-left font-mono opacity-60">۲٪</span>
+        </div>
+      </div>
+
+      <!-- لیست کامنت‌ها -->
+      <div class="space-y-4 pt-3 border-t border-white/30">
+        {% for review in reviews %}
+        <div class="bg-white/40 rounded-2xl p-4 border border-white/30">
+          <div class="flex items-start justify-between gap-3 mb-2">
+            <div class="flex items-center gap-2">
+              <div class="h-8 w-8 rounded-full flex items-center justify-center text-xs font-semibold text-white" style="background: var(--theme);">
+                {{ review.customer.fullname|slice:":1"|default:"?" }}
+              </div>
+              <div>
+                <p class="text-xs font-semibold" style="color: var(--accent);">{{ review.customer.fullname|default:"کاربر" }}</p>
+                <p class="text-[10px] font-light opacity-60" style="color: var(--accent);">{{ review.created_at|date:"j F Y" }}</p>
+              </div>
+            </div>
+            <div class="flex items-center text-xs" style="color: var(--theme);">
+              {% if review.rating >= 1 %}★{% endif %}{% if review.rating >= 2 %}★{% endif %}{% if review.rating >= 3 %}★{% endif %}{% if review.rating >= 4 %}★{% endif %}{% if review.rating >= 5 %}★{% endif %}
+            </div>
+          </div>
+          <p class="text-xs font-light leading-relaxed" style="color: var(--accent);">{{ review.comment }}</p>
+        </div>
+        {% empty %}
+        <p class="text-xs font-light text-center py-4 opacity-50" style="color: var(--accent);">هنوز نظری ثبت نشده است.</p>
+        {% endfor %}
+      </div>
+
+      <!-- فرم ثبت نظر جدید -->
+      {% if user.is_authenticated %}
+      <form method="post" action="{% url 'add_review' provider.slug %}" class="pt-3 border-t border-white/30 space-y-3">
+        {% csrf_token %}
+        <div>
+          <label class="text-[10px] font-semibold uppercase tracking-wider opacity-70 block mb-2" style="color: var(--accent);">امتیاز شما</label>
+          <div class="flex gap-2">
+            {% for i in "12345" %}
+            <label class="cursor-pointer">
+              <input type="radio" name="rating" value="{{ i }}" class="hidden peer" required>
+              <span class="text-xl opacity-30 peer-checked:opacity-100 transition-opacity" style="color: var(--theme);">★</span>
+            </label>
+            {% endfor %}
+          </div>
+        </div>
+        <div>
+          <label class="text-[10px] font-semibold uppercase tracking-wider opacity-70 block mb-2" style="color: var(--accent);">نظر شما</label>
+          <textarea name="comment" rows="3" required
+                    class="w-full rounded-xl bg-white/50 border border-white/30 px-3 py-2 text-xs font-light resize-none focus:outline-none focus:ring-2 focus:ring-white/50"
+                    style="color: var(--accent);"
+                    placeholder="تجربه خود را با این ارائه‌دهنده خدمات به اشتراک بگذارید..."></textarea>
+        </div>
+        <button type="submit" 
+                class="w-full rounded-full py-2.5 text-xs font-semibold text-white shadow-md hover:opacity-90 active:scale-95 transition-all"
+                style="background-color: var(--theme); box-shadow: 0 8px 20px -6px var(--theme);">
+          ثبت نظر
+        </button>
+      </form>
+      {% else %}
+      <div class="pt-3 border-t border-white/30 text-center">
+        <a href="{% url 'otp_auth' %}" class="text-xs font-semibold" style="color: var(--theme);">
+          برای ثبت نظر وارد شوید ←
+        </a>
+      </div>
+      {% endif %}
+    </section>
+
+  </main>
+</div>
+
+{% block footer %}{% endblock %}
+
+{% endblock %}

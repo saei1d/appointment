@@ -1,1 +1,837 @@
-{% extends 'base.html' %}{% block content %}<section class="p-4"><h1 class="brand text-4xl">ساعات کاری</h1><p class="text-sm text-stone-500">برای فعال شدن رزرو حداقل یک بازه کاری لازم است.</p><form method="post" class="mt-4 space-y-3">{% csrf_token %}{% for value,label in weekdays %}<div class="rounded-3xl bg-white p-4 shadow"><label class="flex items-center gap-2 font-bold"><input type="checkbox" name="active_{{ value }}"> {{ label }}</label><div class="mt-3 grid grid-cols-2 gap-2"><input type="time" name="start_{{ value }}" value="09:00" class="rounded-2xl border p-3"><input type="time" name="end_{{ value }}" value="18:00" class="rounded-2xl border p-3"></div></div>{% endfor %}<button class="w-full rounded-2xl bg-pink-500 py-4 text-white">ذخیره ساعات کاری</button></form></section>{% endblock %}
+{% extends 'base.html' %}
+{% block title %}ساعات کاری - داشبورد{% endblock %}
+
+{% block header %}{% endblock %}
+
+{% block base_messages %}{% endblock %}
+
+{% block footer %}{% endblock %}
+
+{% block content %}
+
+<!-- Toast Notification -->
+<div id="toast" class="fixed top-4 left-0 right-0 z-[100] pointer-events-none">
+  <div class="mx-auto max-w-[430px] px-4">
+    {% if messages %}
+      {% for message in messages %}
+      <div class="toast-item rounded-2xl bg-emerald-500 text-white px-4 py-3 shadow-lg flex items-center gap-3 transform -translate-y-full opacity-0 transition-all duration-300">
+        <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+        </svg>
+        <span class="text-sm font-medium">{{ message }}</span>
+      </div>
+      {% endfor %}
+    {% endif %}
+  </div>
+</div>
+
+<script>
+  {% if messages %}
+  document.addEventListener('DOMContentLoaded', function() {
+    const toastItems = document.querySelectorAll('.toast-item');
+    toastItems.forEach((toastContent, index) => {
+      setTimeout(() => {
+        toastContent.classList.remove('-translate-y-full', 'opacity-0');
+        toastContent.classList.add('translate-y-0', 'opacity-100');
+        setTimeout(() => {
+          toastContent.classList.add('-translate-y-full', 'opacity-0');
+          toastContent.classList.remove('translate-y-0', 'opacity-100');
+        }, 3000);
+      }, 200 + index * 300);
+    });
+  });
+  {% endif %}
+</script>
+<style>
+  :root {
+    --theme: {{ provider.theme_color|default:"#1d1a17" }};
+    --bg: {{ provider.background_color|default:"#f7f7f7" }};
+    --accent: {{ provider.accent_color|default:"#1d1a17" }};
+  }
+</style>
+
+<section class="p-4 space-y-4 pt-8">
+
+  <!-- هدر -->
+  <div class="relative overflow-hidden rounded-3xl p-5 text-white" style="background: linear-gradient(to bottom right, var(--theme), var(--accent));">
+    <div class="absolute top-0 right-0 w-64 h-64 rounded-full blur-3xl" style="background: var(--theme); opacity: 0.1;"></div>
+    <div class="absolute bottom-0 left-0 w-48 h-48 rounded-full blur-3xl" style="background: var(--accent); opacity: 0.1;"></div>
+    <div class="relative">
+      <div class="flex items-center justify-between mb-2">
+        <div class="flex items-center gap-2">
+          <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-white/10 backdrop-blur rounded-full text-xs font-medium">
+            <span class="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse"></span>
+            مدیریت زمان‌ها
+          </span>
+        </div>
+        <a href="{% url 'provider_dashboard' %}" class="flex items-center gap-1.5 px-3 py-1.5 bg-white/10 hover:bg-white/20 backdrop-blur rounded-full text-xs font-medium transition">
+          <span>بازگشت</span>
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+        </a>
+      </div>
+      <h1 class="text-xl font-bold tracking-tight mt-3">ساعات کاری</h1>
+      <p class="text-stone-400 text-sm mt-1">زمان‌های کاری خود را برای {{ days_data|length }} روز آینده تنظیم کنید</p>
+    </div>
+  </div>
+
+  <form method="post" id="hours-form" class="space-y-3">
+    {% csrf_token %}
+    <!-- Hidden inputs container: will be populated from dayState on submit -->
+    <div id="hidden-inputs-container"></div>
+
+    <!-- تنظیم سریع -->
+    <div class="rounded-2xl border overflow-hidden" style="background: linear-gradient(to bottom right, var(--bg), var(--theme) 0.1); border-color: var(--theme) 0.2;">
+      <button type="button" onclick="toggleAutoFill()" class="w-full px-4 py-3 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background: var(--theme) 0.2;">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="color: var(--theme);"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+          </div>
+          <div class="text-right">
+            <p class="font-bold text-stone-800 text-sm">تنظیم سریع</p>
+            <p class="text-[11px] text-stone-500 leading-relaxed">بازه ساعتی پیش‌فرض رو مشخص کنید، بعداً با یک دکمه روی روزهای مورد نظر اعمال می‌شه</p>
+          </div>
+        </div>
+        <svg id="auto-fill-chevron" class="w-5 h-5 text-stone-400 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+      </button>
+      <div id="auto-fill-body" class="hidden px-4 pb-4 space-y-3">
+        <p class="text-[11px] text-stone-500 leading-relaxed">ساعت‌هایی که اینجا وارد می‌کنید، پیش‌فرض شما هستند. با زدن دکمه «اعمال»، این ساعت‌ها به روزهایی که هنوز فعالشان نکرده‌اید کپی می‌شوند. خود روزها فعال نمی‌شوند، فقط ساعتشان تنظیم می‌شود.</p>
+        <div id="auto-slots-container" class="space-y-2">
+          <div class="auto-slot-row flex items-center gap-2">
+            <div class="flex-1 flex items-center gap-1">
+              <div class="flex-1 relative time-picker" data-value="09:00">
+                <input type="text" class="time-display w-full rounded-xl border px-3 py-2.5 text-sm text-center focus:ring-2 focus:border-transparent transition bg-white cursor-pointer" value="09:00" placeholder="شروع" style="border-color: var(--theme) 0.3; --tw-ring-color: var(--theme) 0.4;">
+              </div>
+              <span class="text-stone-400 text-xs">تا</span>
+              <div class="flex-1 relative time-picker" data-value="13:00">
+                <input type="text" class="time-display w-full rounded-xl border px-3 py-2.5 text-sm text-center focus:ring-2 focus:border-transparent transition bg-white cursor-pointer" value="13:00" placeholder="پایان" style="border-color: var(--theme) 0.3; --tw-ring-color: var(--theme) 0.4;">
+              </div>
+            </div>
+            <button type="button" onclick="removeAutoSlot(this)" class="w-8 h-8 rounded-xl bg-red-50 text-red-400 hover:bg-red-100 hover:text-red-600 flex items-center justify-center transition flex-shrink-0">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+            </button>
+          </div>
+          <div class="auto-slot-row flex items-center gap-2">
+            <div class="flex-1 flex items-center gap-1">
+              <div class="flex-1 relative time-picker" data-value="14:00">
+                <input type="text" class="time-display w-full rounded-xl border px-3 py-2.5 text-sm text-center focus:ring-2 focus:border-transparent transition bg-white cursor-pointer" value="14:00" placeholder="شروع" style="border-color: var(--theme) 0.3; --tw-ring-color: var(--theme) 0.4;">
+              </div>
+              <span class="text-stone-400 text-xs">تا</span>
+              <div class="flex-1 relative time-picker" data-value="18:00">
+                <input type="text" class="time-display w-full rounded-xl border px-3 py-2.5 text-sm text-center focus:ring-2 focus:border-transparent transition bg-white cursor-pointer" value="18:00" placeholder="پایان" style="border-color: var(--theme) 0.3; --tw-ring-color: var(--theme) 0.4;">
+              </div>
+            </div>
+            <button type="button" onclick="removeAutoSlot(this)" class="w-8 h-8 rounded-xl bg-red-50 text-red-400 hover:bg-red-100 hover:text-red-600 flex items-center justify-center transition flex-shrink-0">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+            </button>
+          </div>
+        </div>
+        <div class="flex gap-2">
+          <button type="button" onclick="addAutoSlot()" class="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl border-2 border-dashed transition text-xs" style="border-color: var(--theme) 0.3; color: var(--theme);">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+            بازه جدید
+          </button>
+          <button type="button" onclick="applyAutoFill()" class="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-white text-xs font-medium transition shadow-sm" style="background: linear-gradient(to right, var(--theme), var(--accent));">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+            اعمال روی روزهای غیرفعال
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- نکات مهم -->
+    <div class="rounded-2xl border overflow-hidden" style="background: linear-gradient(to bottom right, var(--bg), var(--theme) 0.1); border-color: var(--theme) 0.2;">
+      <div class="px-4 py-3 flex items-start gap-3">
+        <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style="background: var(--theme) 0.2;">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="color: var(--theme);"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        </div>
+        <div class="text-right">
+          <p class="font-bold text-stone-800 text-sm mb-1">نکات مهم</p>
+          <ul class="text-[11px] text-stone-600 leading-relaxed space-y-1 list-disc list-inside">
+            <li>ساعت‌های کاری به صورت ۲۴ ساعته هستند (مثال: ۹ تا ۱۴)</li>
+            <li>از همپوشانی بازه‌ها پرهیز کنید (مثال: ۹ تا ۱۲ و ۱۲ تا ۱۴ اشتباه است)</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- لیست روزها -->
+    {% for day in days_data %}
+    <div class="bg-white rounded-2xl shadow-sm border {% if day.is_active %}border-emerald-200{% else %}border-stone-100{% endif %} overflow-hidden day-card transition-all duration-200 hover:shadow-md" data-date="{{ day.date_str }}" id="day-card-{{ day.date_str }}">
+
+      <!-- هدر روز -->
+      <div class="flex items-center justify-between px-4 py-3 cursor-pointer" onclick="expandDay('{{ day.date_str }}')">
+        <div class="flex items-center gap-3">
+          <button type="button" onclick="event.stopPropagation(); toggleDay('{{ day.date_str }}')" id="toggle-btn-{{ day.date_str }}"
+            class="relative w-12 h-7 rounded-full transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-1 {% if day.is_active %}bg-emerald-500 focus:ring-emerald-300{% else %}bg-stone-300 focus:ring-stone-300{% endif %}">
+            <span class="absolute top-0.5 {% if day.is_active %}right-0.5{% else %}right-6{% endif %} w-6 h-6 bg-white rounded-full shadow-md transition-all duration-200 flex items-center justify-center" id="toggle-dot-{{ day.date_str }}">
+              {% if day.is_active %}
+              <svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+              {% endif %}
+            </span>
+          </button>
+          <input type="checkbox" name="active_{{ day.date_str }}" id="active_{{ day.date_str }}" class="hidden" {% if day.is_active %}checked{% endif %}>
+          <div>
+            <p class="font-bold text-stone-800 text-sm">
+              {% if day.weekday_num == 0 %}شنبه{% elif day.weekday_num == 1 %}یکشنبه{% elif day.weekday_num == 2 %}دوشنبه{% elif day.weekday_num == 3 %}سه‌شنبه{% elif day.weekday_num == 4 %}چهارشنبه{% elif day.weekday_num == 5 %}پنجشنبه{% elif day.weekday_num == 6 %}جمعه{% endif %}
+            </p>
+            <p class="text-xs {% if day.is_active %}text-emerald-600{% else %}text-stone-400{% endif %}" id="slot-count-{{ day.date_str }}">
+              {% if day.slots|length > 0 %}{{ day.slots|length }} بازه {% if day.is_active %}فعال{% else %}(غیرفعال){% endif %}{% else %}بدون بازه{% endif %}
+            </p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="text-xs text-stone-500 bg-stone-50 px-2.5 py-1 rounded-full font-medium">{{ day.jalali_date }}</span>
+          {% if day.weekday_num == 6 %}
+          <span class="text-xs text-red-500 bg-red-50 px-2 py-1 rounded-full font-medium">جمعه</span>
+          {% endif %}
+          <div class="w-8 h-8 rounded-lg {% if day.is_active %}bg-emerald-50{% else %}bg-stone-50{% endif %} flex items-center justify-center transition">
+            <svg id="day-chevron-{{ day.date_str }}" class="w-4 h-4 {% if day.is_active %}text-emerald-500{% else %}text-stone-400{% endif %} transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+          </div>
+        </div>
+      </div>
+
+      <!-- بازه‌های ساعتی -->
+      <div id="slots-container-{{ day.date_str }}" class="px-4 pb-4 space-y-2 hidden {% if day.is_active %}bg-emerald-50/30{% else %}bg-stone-50/50{% endif %}">
+        <div class="slots-wrapper" id="slots-{{ day.date_str }}"></div>
+      </div>
+    </div>
+    {% endfor %}
+
+    <!-- دکمه ذخیره -->
+    <button type="submit"
+      class="w-full text-white font-medium py-3.5 px-6 rounded-2xl transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-[1.01] active:scale-[0.99] text-sm mt-2"
+      style="background: linear-gradient(to right, var(--theme), var(--accent));">
+      ذخیره ساعات کاری
+    </button>
+  </form>
+</section>
+
+<!-- تایم پیکر 24 ساعته -->
+<div id="time-dropdown-template" class="hidden">
+  <div class="absolute top-full left-0 right-0 mt-1 bg-white rounded-xl shadow-xl border border-stone-200 z-50 max-h-48 overflow-y-auto" dir="rtl"></div>
+</div>
+
+<script>
+// ========== وضعیت روزها ==========
+const dayState = {};
+const weekdayNames = {};
+{% for day in days_data %}
+dayState['{{ day.date_str }}'] = {
+  active: {% if day.is_active %}true{% else %}false{% endif %},
+  slots: [{% for s in day.slots %}{ start: '{{ s.start }}', end: '{{ s.end }}' },{% endfor %}]
+};
+weekdayNames['{{ day.date_str }}'] = '{% if day.weekday_num == 0 %}شنبه{% elif day.weekday_num == 1 %}یکشنبه{% elif day.weekday_num == 2 %}دوشنبه{% elif day.weekday_num == 3 %}سه‌شنبه{% elif day.weekday_num == 4 %}چهارشنبه{% elif day.weekday_num == 5 %}پنجشنبه{% elif day.weekday_num == 6 %}جمعه{% endif %}';
+{% endfor %}
+
+// ========== تایم پیکر 24 ساعته ==========
+let activeTimePicker = null;
+
+function buildTimeOptions() {
+  const times = [];
+  for (let h = 0; h < 24; h++) {
+    for (let m = 0; m < 60; m += 30) {
+      const hh = String(h).padStart(2, '0');
+      const mm = String(m).padStart(2, '0');
+      times.push(`${hh}:${mm}`);
+    }
+  }
+  return times;
+}
+
+const TIME_OPTIONS = buildTimeOptions();
+
+function openTimePicker(picker) {
+  closeAllTimePickers();
+  activeTimePicker = picker;
+  const currentValue = picker.querySelector('.time-display').value;
+  const container = picker.querySelector('.time-dropdown');
+  if (!container) {
+    const dd = document.createElement('div');
+    dd.className = 'absolute top-full left-0 right-0 mt-1 bg-white rounded-xl shadow-xl border border-stone-200 z-50 max-h-48 overflow-y-auto';
+    TIME_OPTIONS.forEach(t => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'w-full px-3 py-2 text-sm text-center hover:bg-stone-50 transition text-stone-700' + (t === currentValue ? ' bg-stone-50 font-medium' : '');
+      btn.textContent = t;
+      btn.onclick = (e) => {
+        e.stopPropagation();
+        const display = picker.querySelector('.time-display');
+        display.value = t;
+        picker.setAttribute('data-value', t);
+        
+        const dayCard = picker.closest('.day-card');
+        if (dayCard) {
+          const dateStr = dayCard.getAttribute('data-date');
+          const slotRow = picker.closest('.flex.items-center.gap-2');
+          if (slotRow && dateStr) {
+            const wrapper = slotRow.parentElement;
+            const slotRows = Array.from(wrapper.querySelectorAll('.flex.items-center.gap-2'));
+            const slotIndex = slotRows.indexOf(slotRow);
+            const isStart = picker.querySelector('[name*="start_"]');
+            const field = isStart ? 'start' : 'end';
+            dayState[dateStr].slots[slotIndex][field] = t;
+          }
+        }
+        
+        closeAllTimePickers();
+      };
+      dd.appendChild(btn);
+    });
+    picker.appendChild(dd);
+  }
+  // Scroll to current value
+  const dd2 = picker.querySelector('.time-dropdown, .absolute');
+  if (dd2) {
+    const selected = dd2.querySelector('.bg-stone-50');
+    if (selected) selected.scrollIntoView({ block: 'center' });
+  }
+}
+
+function closeAllTimePickers() {
+  document.querySelectorAll('.time-picker .absolute').forEach(el => {
+    if (!el.classList.contains('hidden')) el.remove();
+  });
+  activeTimePicker = null;
+}
+
+document.addEventListener('click', (e) => {
+  const picker = e.target.closest('.time-picker');
+  if (picker) {
+    e.stopPropagation();
+    if (activeTimePicker === picker) {
+      closeAllTimePickers();
+    } else {
+      openTimePicker(picker);
+    }
+  } else {
+    closeAllTimePickers();
+  }
+});
+
+// ========== تنظیم سریع (Collapsible) ==========
+let autoFillOpen = false;
+function toggleAutoFill() {
+  autoFillOpen = !autoFillOpen;
+  const body = document.getElementById('auto-fill-body');
+  const chevron = document.getElementById('auto-fill-chevron');
+  if (autoFillOpen) {
+    body.classList.remove('hidden');
+    chevron.style.transform = 'rotate(180deg)';
+  } else {
+    body.classList.add('hidden');
+    chevron.style.transform = '';
+  }
+}
+
+// ========== باز/بسته کردن روز (فقط نمایش) ==========
+const expandedDays = {};
+function expandDay(dateStr) {
+  const container = document.getElementById('slots-container-' + dateStr);
+  const chevron = document.getElementById('day-chevron-' + dateStr);
+  expandedDays[dateStr] = !expandedDays[dateStr];
+  if (expandedDays[dateStr]) {
+    // رندر اسلات‌ها اگر هنوز رندر نشده‌اند
+    const wrapper = document.getElementById('slots-' + dateStr);
+    if (wrapper && wrapper.children.length === 0) {
+      renderSlots(dateStr);
+    }
+    container.classList.remove('hidden');
+    if (chevron) chevron.style.transform = 'rotate(180deg)';
+  } else {
+    container.classList.add('hidden');
+    if (chevron) chevron.style.transform = '';
+  }
+}
+
+// ========== فعال/غیرفعال کردن روز ==========
+function toggleDay(dateStr) {
+  // تغییر وضعیت فعال/غیرفعال
+  dayState[dateStr].active = !dayState[dateStr].active;
+  
+  const btn = document.getElementById('toggle-btn-' + dateStr);
+  const dot = document.getElementById('toggle-dot-' + dateStr);
+  const checkbox = document.getElementById('active_' + dateStr);
+  const container = document.getElementById('slots-container-' + dateStr);
+  const countText = document.getElementById('slot-count-' + dateStr);
+  const card = document.getElementById('day-card-' + dateStr);
+  const chevron = document.getElementById('day-chevron-' + dateStr);
+
+  if (dayState[dateStr].active) {
+    // فعال کردن روز
+    btn.classList.remove('bg-stone-300', 'focus:ring-stone-300');
+    btn.classList.add('bg-emerald-500', 'focus:ring-emerald-300');
+    dot.style.right = '2px';
+    dot.style.left = 'auto';
+    dot.innerHTML = '<svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>';
+    checkbox.checked = true;
+    
+    // اگر روز قبلاً غیرفعال بود و اسلات نداشت، اسلات پیش‌فرض اضافه کن
+    if (dayState[dateStr].slots.length === 0) {
+      dayState[dateStr].slots = [
+        { start: '09:00', end: '13:00' },
+        { start: '14:00', end: '18:00' }
+      ];
+    }
+    
+    // نمایش اسلات‌ها
+    renderSlots(dateStr);
+    container.classList.remove('hidden');
+    expandedDays[dateStr] = true;
+    if (chevron) chevron.style.transform = 'rotate(180deg)';
+    
+    // به‌روزرسانی متن تعداد اسلات‌ها
+    countText.textContent = dayState[dateStr].slots.length + ' بازه فعال';
+    countText.classList.remove('text-stone-400');
+    countText.classList.add('text-emerald-600');
+    
+    // به‌روزرسانی استایل کارت
+    card.classList.remove('border-stone-100');
+    card.classList.add('border-emerald-200');
+    container.classList.remove('bg-stone-50/50');
+    container.classList.add('bg-emerald-50/30');
+    chevron.classList.remove('text-stone-400', 'bg-stone-50');
+    chevron.classList.add('text-emerald-500', 'bg-emerald-50');
+  } else {
+    // غیرفعال کردن روز
+    btn.classList.add('bg-stone-300', 'focus:ring-stone-300');
+    btn.classList.remove('bg-emerald-500', 'focus:ring-emerald-300');
+    dot.style.left = '2px';
+    dot.style.right = 'auto';
+    dot.innerHTML = '';
+    checkbox.checked = false;
+    
+    // مخفی کردن اسلات‌ها
+    container.classList.add('hidden');
+    expandedDays[dateStr] = false;
+    if (chevron) chevron.style.transform = '';
+    
+    // به‌روزرسانی متن وضعیت
+    if (dayState[dateStr].slots.length > 0) {
+      countText.textContent = dayState[dateStr].slots.length + ' بازه (غیرفعال)';
+    } else {
+      countText.textContent = 'بدون بازه';
+    }
+    countText.classList.add('text-stone-400');
+    countText.classList.remove('text-emerald-600');
+    
+    // به‌روزرسانی استایل کارت
+    card.classList.add('border-stone-100');
+    card.classList.remove('border-emerald-200');
+    container.classList.add('bg-stone-50/50');
+    container.classList.remove('bg-emerald-50/30');
+    chevron.classList.add('text-stone-400', 'bg-stone-50');
+    chevron.classList.remove('text-emerald-500', 'bg-emerald-50');
+  }
+}
+// ========== رندر بازه‌های ساعتی ==========
+function renderSlots(dateStr) {
+  const wrapper = document.getElementById('slots-' + dateStr);
+  wrapper.innerHTML = '';
+  dayState[dateStr].slots.forEach((slot, i) => {
+    const row = document.createElement('div');
+    row.className = 'flex items-center gap-2';
+    row.innerHTML = `
+      <div class="flex-1 flex items-center gap-1">
+        <div class="flex-1 relative time-picker" data-value="${slot.start}">
+          <input type="text" name="start_${dateStr}_${i}" class="time-display w-full rounded-xl border border-stone-200 px-3 py-2.5 text-sm text-center focus:ring-2 focus:border-transparent transition cursor-pointer" value="${slot.start}" placeholder="شروع" required style="--tw-ring-color: var(--theme) 0.4;">
+        </div>
+        <span class="text-stone-400 text-xs">تا</span>
+        <div class="flex-1 relative time-picker" data-value="${slot.end}">
+          <input type="text" name="end_${dateStr}_${i}" class="time-display w-full rounded-xl border border-stone-200 px-3 py-2.5 text-sm text-center focus:ring-2 focus:border-transparent transition cursor-pointer" value="${slot.end}" placeholder="پایان" required style="--tw-ring-color: var(--theme) 0.4;">
+        </div>
+      </div>
+      <button type="button" onclick="removeSlot('${dateStr}', ${i})" class="w-8 h-8 rounded-xl bg-red-50 text-red-400 hover:bg-red-100 hover:text-red-600 flex items-center justify-center transition flex-shrink-0">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+      </button>
+    `;
+    wrapper.appendChild(row);
+  });
+  const addBtn = document.createElement('button');
+  addBtn.type = 'button';
+  addBtn.onclick = function() { addSlot(dateStr); };
+  addBtn.className = 'w-full flex items-center justify-center gap-2 py-2 mt-3 rounded-xl border-2 border-dashed border-stone-200 text-stone-500 hover:border-stone-300 hover:text-stone-600 transition text-xs';
+  addBtn.innerHTML = '<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg> اضافه کردن بازه';
+  wrapper.appendChild(addBtn);
+  const countText = document.getElementById('slot-count-' + dateStr);
+  const isActive = dayState[dateStr].active;
+  if (isActive) {
+    countText.textContent = dayState[dateStr].slots.length + ' بازه فعال';
+    countText.classList.remove('text-stone-400');
+    countText.classList.add('text-emerald-600');
+  } else {
+    countText.textContent = dayState[dateStr].slots.length + ' بازه (غیرفعال)';
+    countText.classList.add('text-stone-400');
+    countText.classList.remove('text-emerald-600');
+  }
+  // جلوگیری از انتشار کلیک time-picker به day-card
+  wrapper.querySelectorAll('.time-picker').forEach(el => {
+    el.addEventListener('click', (e) => e.stopPropagation());
+  });
+  // هندل کردن تغییر دستی زمان
+  wrapper.querySelectorAll('.time-display').forEach(input => {
+    input.addEventListener('input', (e) => {
+      const picker = e.target.closest('.time-picker');
+      const dayCard = picker.closest('.day-card');
+      if (dayCard) {
+        const dateStr = dayCard.getAttribute('data-date');
+        const slotRow = picker.closest('.flex.items-center.gap-2');
+        if (slotRow && dateStr) {
+          const wrapper = slotRow.parentElement;
+          const slotRows = Array.from(wrapper.querySelectorAll('.flex.items-center.gap-2'));
+          const slotIndex = slotRows.indexOf(slotRow);
+          const isStart = input.name.includes('start_');
+          const field = isStart ? 'start' : 'end';
+          // اعتبارسنجی فرمت زمان
+          const timeRegex = /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/;
+          if (timeRegex.test(e.target.value)) {
+            picker.setAttribute('data-value', e.target.value);
+            // دیگر اعتبارسنجی همپوشانی را اینجا انجام نمی‌دهیم
+            dayState[dateStr].slots[slotIndex][field] = e.target.value;
+          }
+        }
+      }
+    });
+  });
+}
+
+// ========== اعتبارسنجی همپوشانی بازه‌ها ==========
+function timeToMinutes(timeStr) {
+  const [h, m] = timeStr.split(':').map(Number);
+  return h * 60 + m;
+}
+
+function minutesToTime(minutes) {
+  const h = Math.floor(minutes / 60) % 24;
+  const m = minutes % 60;
+  return String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0');
+}
+
+function hasOverlap(dateStr, newSlot, excludeIndex = -1) {
+  const newStart = timeToMinutes(newSlot.start);
+  const newEnd = timeToMinutes(newSlot.end);
+  
+  // بررسی اعتبار: زمان پایان باید بعد از شروع باشد
+  if (newEnd <= newStart) {
+    return { hasOverlap: true, message: 'زمان پایان باید بعد از زمان شروع باشد' };
+  }
+  
+  for (let i = 0; i < dayState[dateStr].slots.length; i++) {
+    if (i === excludeIndex) continue;
+    const slot = dayState[dateStr].slots[i];
+    const existingStart = timeToMinutes(slot.start);
+    const existingEnd = timeToMinutes(slot.end);
+    
+    // بررسی همپوشانی (شامل زمان‌های مجاور مثل 9-12 و 12-14)
+    if (newStart <= existingEnd && newEnd >= existingStart) {
+      return { hasOverlap: true, message: `همپوشانی با بازه ${slot.start} تا ${slot.end}` };
+    }
+  }
+  return { hasOverlap: false };
+}
+
+function addSlot(dateStr) {
+  let defaultStart = '09:00';
+  let defaultEnd = '12:00';
+  
+  if (dayState[dateStr].slots.length > 0) {
+    const lastSlot = dayState[dateStr].slots[dayState[dateStr].slots.length - 1];
+    const lastEndMinutes = timeToMinutes(lastSlot.end);
+    defaultStart = minutesToTime(lastEndMinutes);
+    const newEndMinutes = lastEndMinutes + 180;
+    defaultEnd = minutesToTime(newEndMinutes);
+  }
+  
+  dayState[dateStr].slots.push({ start: defaultStart, end: defaultEnd });
+  renderSlots(dateStr);
+}
+
+function removeSlot(dateStr, index) {
+  dayState[dateStr].slots.splice(index, 1);
+  renderSlots(dateStr);
+}
+
+function updateSlotTime(dateStr, index, field, value) {
+  const oldSlot = dayState[dateStr].slots[index];
+  const newSlot = { ...oldSlot, [field]: value };
+  // دیگر اعتبارسنجی همپوشانی را اینجا انجام نمی‌دهیم
+  // فقط مقدار را آپدیت می‌کنیم
+  dayState[dateStr].slots[index][field] = value;
+  return true;
+}
+
+// ========== تنظیم سریع ==========
+function getAutoSlotsFromDOM() {
+  const slots = [];
+  document.querySelectorAll('#auto-slots-container .auto-slot-row').forEach(row => {
+    const pickers = row.querySelectorAll('.time-picker');
+    const start = pickers[0] ? pickers[0].getAttribute('data-value') : '';
+    const end = pickers[1] ? pickers[1].getAttribute('data-value') : '';
+    if (start && end) slots.push({ start, end });
+  });
+  return slots;
+}
+
+function addAutoSlot() {
+  const container = document.getElementById('auto-slots-container');
+  const row = document.createElement('div');
+  row.className = 'auto-slot-row flex items-center gap-2';
+  row.innerHTML = `
+    <div class="flex-1 flex items-center gap-1">
+      <div class="flex-1 relative time-picker" data-value="09:00">
+        <input type="text" class="time-display w-full rounded-xl border px-3 py-2.5 text-sm text-center focus:ring-2 focus:border-transparent transition bg-white cursor-pointer" value="09:00" placeholder="شروع" style="border-color: var(--theme) 0.3; --tw-ring-color: var(--theme) 0.4;">
+      </div>
+      <span class="text-stone-400 text-xs">تا</span>
+      <div class="flex-1 relative time-picker" data-value="12:00">
+        <input type="text" class="time-display w-full rounded-xl border px-3 py-2.5 text-sm text-center focus:ring-2 focus:border-transparent transition bg-white cursor-pointer" value="12:00" placeholder="پایان" style="border-color: var(--theme) 0.3; --tw-ring-color: var(--theme) 0.4;">
+      </div>
+    </div>
+    <button type="button" onclick="removeAutoSlot(this)" class="w-8 h-8 rounded-xl bg-red-50 text-red-400 hover:bg-red-100 hover:text-red-600 flex items-center justify-center transition flex-shrink-0">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+    </button>
+  `;
+  container.appendChild(row);
+}
+
+function removeAutoSlot(btn) {
+  const container = document.getElementById('auto-slots-container');
+  if (container.children.length > 1) {
+    btn.closest('.auto-slot-row').remove();
+  }
+}
+
+function applyAutoFill() {
+  const autoSlots = getAutoSlotsFromDOM();
+  if (autoSlots.length === 0) {
+    alert('لطفاً حداقل یک بازه ساعتی وارد کنید');
+    return;
+  }
+  
+  let count = 0;
+  Object.keys(dayState).forEach(dateStr => {
+    // فقط روزهایی که غیرفعال هستند و اسلات ندارند
+    if (!dayState[dateStr].active) {
+      // اسلات‌ها را کپی کن اما روز را فعال نکن
+      dayState[dateStr].slots = JSON.parse(JSON.stringify(autoSlots));
+      
+      // اگر روز باز است، رندر مجدد کن
+      const container = document.getElementById('slots-container-' + dateStr);
+      if (container && !container.classList.contains('hidden')) {
+        renderSlots(dateStr);
+      }
+      count++;
+    }
+  });
+  
+  // نمایش پیام موفقیت
+  if (count > 0) {
+    const btn = event.target;
+    const orig = btn.innerHTML;
+    btn.innerHTML = '✅ ' + count + ' روز بروزرسانی شد!';
+    btn.classList.add('bg-emerald-500');
+    btn.classList.remove('from-rose-500', 'to-pink-500');
+    setTimeout(() => {
+      btn.innerHTML = orig;
+      btn.classList.remove('bg-emerald-500');
+      btn.classList.add('from-rose-500', 'to-pink-500');
+    }, 2000);
+  } else {
+    alert('هیچ روز غیرفعالی برای اعمال پیدا نشد');
+  }
+}
+// ========== مقداردهی اولیه ==========
+function initDay(dateStr) {
+  const checkbox = document.getElementById('active_' + dateStr);
+  const isActive = checkbox.checked;
+  
+  // همگام‌سازی dayState با مقدار checkbox
+  dayState[dateStr].active = isActive;
+  
+  const btn = document.getElementById('toggle-btn-' + dateStr);
+  const dot = document.getElementById('toggle-dot-' + dateStr);
+  const container = document.getElementById('slots-container-' + dateStr);
+  const card = document.getElementById('day-card-' + dateStr);
+  const chevron = document.getElementById('day-chevron-' + dateStr);
+  const countText = document.getElementById('slot-count-' + dateStr);
+  
+  if (isActive) {
+    btn.classList.remove('bg-stone-300', 'focus:ring-stone-300');
+    btn.classList.add('bg-emerald-500', 'focus:ring-emerald-300');
+    dot.style.right = '2px';
+    dot.style.left = 'auto';
+    dot.innerHTML = '<svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>';
+    
+    // اسلات‌ها را رندر کن
+    renderSlots(dateStr);
+    
+    // اگر روز در حالت expanded نیست، آن را باز کن
+    if (!expandedDays[dateStr]) {
+      container.classList.remove('hidden');
+      expandedDays[dateStr] = true;
+      if (chevron) chevron.style.transform = 'rotate(180deg)';
+    }
+    
+    // به‌روزرسانی استایل کارت
+    card.classList.remove('border-stone-100');
+    card.classList.add('border-emerald-200');
+    container.classList.remove('bg-stone-50/50');
+    container.classList.add('bg-emerald-50/30');
+    chevron.classList.remove('text-stone-400', 'bg-stone-50');
+    chevron.classList.add('text-emerald-500', 'bg-emerald-50');
+    countText.classList.remove('text-stone-400');
+    countText.classList.add('text-emerald-600');
+  } else {
+    btn.classList.add('bg-stone-300', 'focus:ring-stone-300');
+    btn.classList.remove('bg-emerald-500', 'focus:ring-emerald-300');
+    dot.style.left = '2px';
+    dot.style.right = 'auto';
+    dot.innerHTML = '';
+    
+    // برای روزهای غیرفعال، مطمئن شو که اسلات‌ها مخفی هستند
+    if (container) {
+      container.classList.add('hidden');
+    }
+    expandedDays[dateStr] = false;
+    
+    // به‌روزرسانی استایل کارت
+    card.classList.add('border-stone-100');
+    card.classList.remove('border-emerald-200');
+    container.classList.add('bg-stone-50/50');
+    container.classList.remove('bg-emerald-50/30');
+    chevron.classList.add('text-stone-400', 'bg-stone-50');
+    chevron.classList.remove('text-emerald-500', 'bg-emerald-50');
+    countText.classList.add('text-stone-400');
+    countText.classList.remove('text-emerald-600');
+  }
+}
+
+{% for day in days_data %}
+initDay('{{ day.date_str }}');
+{% endfor %}
+
+// ========== اعتبارسنجی فرم قبل از ذخیره ==========
+document.getElementById('hours-form').addEventListener('submit', function(e) {
+  const errors = [];
+  
+  Object.keys(dayState).forEach(dateStr => {
+    const slots = dayState[dateStr].slots;
+    
+    // فقط روزهایی که اسلات دارند
+    if (slots.length === 0) {
+      return;
+    }
+    
+    const dayName = weekdayNames[dateStr] || dateStr;
+    
+    // اعتبارسنجی هر بازه
+    for (let i = 0; i < slots.length; i++) {
+      const slot = slots[i];
+      const start = timeToMinutes(slot.start);
+      const end = timeToMinutes(slot.end);
+      
+      if (end <= start) {
+        errors.push(`${dayName}: بازه ${slot.start} تا ${slot.end} - زمان پایان باید بعد از زمان شروع باشد`);
+      }
+    }
+    
+    // بررسی همپوشانی بین بازه‌ها
+    for (let i = 0; i < slots.length; i++) {
+      for (let j = i + 1; j < slots.length; j++) {
+        const slotA = slots[i];
+        const slotB = slots[j];
+        const startA = timeToMinutes(slotA.start);
+        const endA = timeToMinutes(slotA.end);
+        const startB = timeToMinutes(slotB.start);
+        const endB = timeToMinutes(slotB.end);
+        
+        if (endA <= startA || endB <= startB) continue;
+        
+        if (startA <= endB && endA >= startB) {
+          errors.push(`${dayName}: همپوشانی بین بازه ${slotA.start} تا ${slotA.end} و ${slotB.start} تا ${slotB.end}`);
+        }
+      }
+    }
+  });
+  
+  if (errors.length > 0) {
+    e.preventDefault();
+    showToastError(errors.join('\n'));
+    return;
+  }
+  
+  // همگام‌سازی dayState با hidden inputs قبل از ارسال
+  syncHiddenInputs();
+});
+
+// ========== همگام‌سازی hidden inputs با dayState ==========
+function syncHiddenInputs() {
+  const container = document.getElementById('hidden-inputs-container');
+  container.innerHTML = '';
+  
+  Object.keys(dayState).forEach(dateStr => {
+    const state = dayState[dateStr];
+    
+    // فیلد active - مهم: فقط اگر روز فعال باشد مقدار 'on' ارسال شود
+    const activeInput = document.createElement('input');
+    activeInput.type = 'hidden';
+    activeInput.name = 'active_' + dateStr;
+    activeInput.value = state.active ? 'on' : '';
+    container.appendChild(activeInput);
+    
+    // فیلدهای اسلات‌ها - همیشه ارسال شوند تا بک‌اند بتواند وضعیت فعال/غیرفعال را درست تشخیص دهد
+    state.slots.forEach((slot, i) => {
+      const startInput = document.createElement('input');
+      startInput.type = 'hidden';
+      startInput.name = 'start_' + dateStr + '_' + i;
+      startInput.value = slot.start;
+      container.appendChild(startInput);
+      
+      const endInput = document.createElement('input');
+      endInput.type = 'hidden';
+      endInput.name = 'end_' + dateStr + '_' + i;
+      endInput.value = slot.end;
+      container.appendChild(endInput);
+    });
+  });
+}
+// ========== Toast خطا ==========
+function showToastError(message) {
+  const toastContainer = document.getElementById('toast');
+  const inner = toastContainer.querySelector('.mx-auto');
+  const toastEl = document.createElement('div');
+  toastEl.className = 'toast-item rounded-2xl bg-red-500 text-white px-4 py-3 shadow-lg flex items-center gap-3 transform -translate-y-full opacity-0 transition-all duration-300';
+  toastEl.innerHTML = `
+    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4.5c-.77-.833-2.694-.833-3.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z"/>
+    </svg>
+    <span class="text-sm font-medium whitespace-pre-line">${message}</span>
+  `;
+  inner.appendChild(toastEl);
+  
+  setTimeout(() => {
+    toastEl.classList.remove('-translate-y-full', 'opacity-0');
+    toastEl.classList.add('translate-y-0', 'opacity-100');
+    
+    setTimeout(() => {
+      toastEl.classList.add('-translate-y-full', 'opacity-0');
+      toastEl.classList.remove('translate-y-0', 'opacity-100');
+      setTimeout(() => toastEl.remove(), 300);
+    }, 4000);
+  }, 200);
+}
+
+// هندل کردن تغییر دستی زمان در تنظیم سریع
+document.querySelectorAll('#auto-slots-container .time-display').forEach(input => {
+  input.addEventListener('input', (e) => {
+    const picker = e.target.closest('.time-picker');
+    if (picker) {
+      picker.setAttribute('data-value', e.target.value);
+    }
+  });
+});
+
+// جلوگیری از انتشار کلیک time-picker به day-card
+document.querySelectorAll('.time-picker').forEach(el => {
+  el.addEventListener('click', (e) => e.stopPropagation());
+});
+</script>
+{% endblock %}

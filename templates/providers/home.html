@@ -1,1 +1,346 @@
-{% extends 'base.html' %}{% block content %}<section class="p-4 space-y-6"><div><p class="text-sm text-stone-500">{% if user.is_authenticated %}سلام {{ user.fullname|default:user.phone }}{% else %}سلام، مهمان عزیز{% endif %}</p><h1 class="brand text-5xl">زیبایی رو آنلاین رزرو کن</h1></div><form class="flex gap-2"><input name="q" value="{{ q }}" class="min-w-0 flex-1 rounded-2xl border bg-white p-3" placeholder="جستجوی خدمت، شهر یا متخصص"><button class="rounded-2xl bg-pink-500 px-4 text-white">جستجو</button></form><div class="flex snap-x gap-3 overflow-x-auto"><a href="{% url 'onboarding_welcome' %}" class="snap-card min-w-[85%] rounded-[2rem] bg-[#fdccc5] p-6 shadow"><b class="brand text-3xl">دسترسی سریع</b><p class="mt-2 text-sm">خدمت، شهر و متخصص را مرحله‌ای انتخاب کن.</p></a><div class="snap-card min-w-[85%] rounded-[2rem] bg-stone-950 p-6 text-white shadow"><b class="brand text-3xl">برای متخصص‌ها</b><p class="mt-2 text-sm text-white/70">صفحه اختصاصی، گالری و رزرو آنلاین.</p></div></div>{% if upcoming %}<a class="block rounded-[2rem] bg-white p-4 shadow" href="{% url 'customer_bookings' %}"><b>نوبت بعدی شما</b><p class="text-sm text-stone-500">{{ upcoming.service.name }} · {{ upcoming.date|date:'Y/m/d' }} ساعت {{ upcoming.start_time|time:'H:i' }}</p></a>{% endif %}<section id="services"><h2 class="brand text-3xl">{% if user_city %}خدمات محبوب {{ user_city }}{% else %}دسته‌بندی خدمات{% endif %}</h2><div class="mt-3 grid grid-cols-2 gap-3">{% if user_city %}{% for service in city_services %}<a class="rounded-3xl bg-white p-4 shadow" href="{% url 'provider_public_page' service.provider.slug %}"><b>{{ service.name }}</b><p class="text-xs text-stone-500">{{ service.provider.user.fullname }}</p></a>{% endfor %}{% else %}{% for category in categories %}<a class="rounded-3xl bg-white p-4 shadow" href="{% url 'category_providers' category.slug %}"><span class="text-2xl">{{ category.icon }}</span><b class="block">{{ category.name }}</b></a>{% endfor %}{% endif %}</div></section><section><h2 class="brand text-3xl">متخصص‌های منتخب</h2><div class="mt-3 flex snap-x gap-3 overflow-x-auto">{% for provider in featured_providers %}<a class="snap-card min-w-[70%] rounded-3xl bg-white p-4 shadow" href="{% url 'provider_public_page' provider.slug %}"><b>{{ provider.user.fullname }}</b><p class="text-sm text-stone-500">{{ provider.city }} · ⭐ {{ provider.rating }}</p></a>{% endfor %}</div></section><section id="blog"><h2 class="brand text-3xl">آخرین مطالب</h2><div class="mt-3 space-y-3">{% for post in latest_posts %}<a class="block rounded-3xl bg-white p-4 shadow" href="/blog/{{ post.slug }}/"><b>{{ post.title }}</b></a>{% empty %}<p class="text-stone-500">مطلبی منتشر نشده است.</p>{% endfor %}</div></section></section>{% endblock %}
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<section class="max-w-md mx-auto min-h-screen bg-[#FBFBF9] text-stone-800 p-4 space-y-4 pb-24" dir="rtl">
+
+    <!-- هدر: شامل انتخاب شهر و وضعیت کاربر -->
+    <div class="flex items-center justify-between">
+        {% if user.is_authenticated %}
+        <form id="cityForm" method="post" class="relative">
+            {% csrf_token %}
+            <input type="hidden" name="city" id="selectedCity" value="{{ user_city }}">
+            <button type="button" id="cityDisplay"
+                class="flex items-center gap-1.5 px-4 py-2 bg-white border border-stone-200/60 rounded-full text-xs font-medium text-stone-600 hover:bg-stone-50 transition-all shadow-sm">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-stone-400" fill="none"
+                    viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
+                        d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
+                        d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                <span>{{ user_city|default:"انتخاب شهر" }}</span>
+            </button>
+
+            <!-- دکمه‌های دراپ‌داون تمیز و مدرن -->
+            <div id="cityDropdown"
+                class="absolute right-0 top-full mt-2 w-36 bg-white/95 backdrop-blur-md rounded-2xl shadow-xl border border-stone-100 overflow-hidden z-50 hidden transition-all">
+                <div class="py-1 text-xs">
+                    <div class="px-4 py-2.5 text-stone-400 hover:bg-stone-50 cursor-pointer text-right" data-value="">
+                        انتخاب شهر...</div>
+                    <div class="px-4 py-2.5 {% if user_city == 'تهران' %}bg-[#FB9D90]/10 text-[#FB9D90] font-bold{% else %}text-stone-600 hover:bg-stone-50{% endif %} cursor-pointer text-right transition-colors"
+                        data-value="تهران">تهران</div>
+                    <div class="px-4 py-2.5 {% if user_city == 'اصفهان' %}bg-[#FB9D90]/10 text-[#FB9D90] font-bold{% else %}text-stone-600 hover:bg-stone-50{% endif %} cursor-pointer text-right transition-colors"
+                        data-value="اصفهان">اصفهان</div>
+                    <div class="px-4 py-2.5 {% if user_city == 'مشهد' %}bg-[#FB9D90]/10 text-[#FB9D90] font-bold{% else %}text-stone-600 hover:bg-stone-50{% endif %} cursor-pointer text-right transition-colors"
+                        data-value="مشهد">مشهد</div>
+                    <div class="px-4 py-2.5 {% if user_city == 'قم' %}bg-[#FB9D90]/10 text-[#FB9D90] font-bold{% else %}text-stone-600 hover:bg-stone-50{% endif %} cursor-pointer text-right transition-colors"
+                        data-value="قم">قم</div>
+                </div>
+            </div>
+        </form>
+        {% endif %}
+
+    </div>
+
+    <!-- سرچ بار مینیمال خطی و مدرن -->
+    <form class="relative flex items-center">
+        <input name="q" value="{{ q }}"
+            class="w-full rounded-2xl border border-stone-200/80 bg-white p-4 pr-11 pl-4 text-sm shadow-sm placeholder-stone-400 focus:ring-1 focus:ring-[#FB9D90]/50 focus:border-[#FB9D90] focus:outline-none transition-all"
+            placeholder="جستجوی خدمت، شهر یا متخصص...">
+        <div class="absolute pr-4 right-0 top-1/2 -translate-y-1/2 text-stone-400">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+        </div>
+    </form>
+
+    <!-- نوبت بعدی شما (کارت فلت و مینیمال) -->
+    {% if upcoming %}
+    <a class="flex items-center justify-between rounded-2xl bg-[#FB9D90]/10 p-4 border border-[#FB9D90]/20 transition-all hover:opacity-90"
+        href="{% url 'customer_bookings' %}">
+        <div class="space-y-1">
+            <span class="text-xs font-semibold text-[#FB9D90] block">یادآوری نوبت بعدی</span>
+            <p class="text-sm font-bold text-stone-800">{{ upcoming.service.name }}</p>
+        </div>
+        <div class="text-left text-xs text-stone-500">
+            <p>{{ upcoming.date|date:'Y/m/d' }}</p>
+            <p class="font-medium mt-0.5">ساعت {{ upcoming.start_time|time:'H:i' }}</p>
+        </div>
+    </a>
+    {% endif %}
+
+    <!-- بنر اصلی با تصویر و لایه متنی لوکس -->
+    <div class="relative rounded-3xl overflow-hidden aspect-[16/9] shadow-sm group">
+        <img src="{{ MEDIA_URL }}images/woman-s-hands-with-geometric-manicure-nail-design-cozy-sweater_113876-131.jpg"
+            alt="Hero Banner"
+            class="w-full h-full object-cover group-hover:scale-102 transition-transform duration-700">
+        <div
+            class="absolute inset-0 bg-gradient-to-t from-stone-900/60 via-stone-900/20 to-transparent flex flex-col justify-end p-5">
+            <h2 class="text-xl font-bold text-white mb-1">زیبایی به سبک تو</h2>
+            <p class="text-xs text-stone-200/90 font-light">بهترین متخصصان زیبایی در چند قدمی شما</p>
+        </div>
+    </div>
+
+    <!-- بخش دسته‌بندی‌ها و تب‌ها -->
+    <section id="services" class="space-y-4">
+        <div class="flex items-center justify-between">
+            <h3 class="text-base font-bold text-stone-800">
+                {% if user_city %}محبوب‌ترین‌های {{ user_city }}{% else %}دسته‌بندی خدمات{% endif %}
+            </h3>
+        </div>
+
+        <!-- تب‌های کپسولی به سبک مدرن -->
+        <div class="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
+            <button onclick="filterServices('recommended')" data-tab="recommended"
+                class="filter-btn active px-4 py-2 rounded-full text-xs font-medium transition-all whitespace-nowrap">
+                پیشنهادی
+            </button>
+            <button onclick="filterServices('packages')" data-tab="packages"
+                class="filter-btn px-4 py-2 rounded-full text-xs font-medium bg-white border border-stone-200 text-stone-600 transition-all whitespace-nowrap">
+                بسته‌ها
+            </button>
+            <button onclick="filterServices('professionals')" data-tab="professionals"
+                class="filter-btn px-4 py-2 rounded-full text-xs font-medium bg-white border border-stone-200 text-stone-600 transition-all whitespace-nowrap">
+                متخصصان
+            </button>
+        </div>
+
+        <!-- محتوای تب‌ها -->
+        <div class="relative">
+            <!-- گروه پیشنهادی -->
+            <div id="recommendedGroup" class="service-group grid grid-cols-2 gap-3">
+                {% for category in categories|slice:":4" %}
+                <a class="group bg-white border border-stone-100 rounded-2xl p-3 shadow-sm hover:border-stone-200 transition-all"
+                    href="{% url 'category_providers' category.slug %}">
+                    <div class="w-full aspect-[4/3] rounded-xl bg-cover bg-center mb-2.5 overflow-hidden"
+                        style="background-image: url('{% if category.image %}{{ category.image.url }}{% elif category.slug == 'مژه' %}{{ MEDIA_URL }}images/home-page/eyelish.jpg{% elif category.slug == 'ناخن' %}{{ MEDIA_URL }}images/home-page/nail.jpg{% elif category.slug == 'پوست-و-مو' %}{{ MEDIA_URL }}images/home-page/hair-skin.jpg{% else %}#FCEEEB{% endif %}'); background-color: #FCEEEB;">
+                    </div>
+                    <span
+                        class="block text-xs font-bold text-stone-700 text-center group-hover:text-[#FB9D90] transition-colors">{{category.name }}</span>
+                </a>
+                {% empty %}
+                <p class="text-stone-400 text-xs text-center py-6 col-span-2">موردی یافت نشد.</p>
+                {% endfor %}
+            </div>
+
+            <!-- گروه بسته‌ها -->
+            <div id="packagesGroup" class="service-group hidden grid grid-cols-2 gap-3">
+                {% for template in templates|slice:":4" %}
+                <a class="group bg-white border border-stone-100 rounded-2xl p-3 shadow-sm hover:border-stone-200 transition-all"
+                    href="{% url 'category_providers' template.category.slug %}">
+                    <div class="w-full aspect-[4/3] rounded-xl bg-cover bg-center mb-2.5"
+                        style="background-image: url('{% if template.category.name == 'مژه' %}{{ MEDIA_URL }}images/home-page/eyelish.jpg{% elif template.category.name == 'ناخن' %}{{ MEDIA_URL }}images/home-page/nail.jpg{% elif template.category.name == 'پوست و مو' %}{{ MEDIA_URL }}images/home-page/hair-skin.jpg{% else %}#FCEEEB{% endif %}'); background-color: #FCEEEB;">
+                    </div>
+                    <span class="block text-xs font-bold text-stone-700 truncate text-center">{{ template.name }}</span>
+                    <span class="block text-[10px] text-stone-400 text-center mt-0.5">{{ template.category.name}}</span>
+                </a>
+                {% empty %}
+                <p class="text-stone-400 text-xs text-center py-6 col-span-2">بسته‌ای یافت نشد.</p>
+                {% endfor %}
+            </div>
+
+            <!-- گروه متخصصان محبوب -->
+            <div id="professionalsGroup" class="service-group hidden grid grid-cols-2 gap-3">
+                {% for service in popular_services|slice:":4" %}
+                <a class="group bg-white border border-stone-100 rounded-2xl p-3 shadow-sm hover:border-stone-200 transition-all relative"
+                    href="{% url 'provider_public_page' service.provider.slug %}">
+                    <div class="w-full aspect-[4/3] rounded-xl bg-cover bg-center mb-2.5"
+                        style="background-image: url('{% if service.image %}{{ service.image.url }}{% else %}{{ MEDIA_URL }}images/home-page/nail.jpg{% endif %}');">
+                    </div>
+                    <span class="block text-xs font-bold text-stone-700 truncate">{{ service.name }}</span>
+                    <span class="block text-[10px] text-stone-400 mt-0.5">{{ service.provider.user.fullname }}</span>
+                    <span
+                        class="absolute top-4 left-4 bg-white/90 backdrop-blur-sm text-[9px] text-[#FB9D90] font-bold px-2 py-0.5 rounded-full border border-[#FB9D90]/20">محبوب</span>
+                </a>
+                {% empty %}
+                <p class="text-stone-400 text-xs text-center py-6 col-span-2">متخصصی یافت نشد.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+
+    <!-- اسلایدر متخصص‌های منتخب -->
+    <section class="space-y-4">
+        <div class="flex items-center justify-between">
+            <h3 class="text-base font-bold text-stone-800">متخصص‌های منتخب</h3>
+            <div class="flex gap-1">
+                <button onclick="scrollProviders('right')"
+                    class="bg-white p-2 rounded-full border border-stone-200 hover:bg-stone-50 transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-stone-600" fill="none"
+                        viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                    </svg>
+                </button>
+                <button onclick="scrollProviders('left')"
+                    class="bg-white p-2 rounded-full border border-stone-200 hover:bg-stone-50 transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-stone-600" fill="none"
+                        viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <div id="providersSlider"
+            class="flex gap-4 overflow-x-auto pb-2 snap-x no-scrollbar cursor-grab active:cursor-grabbing">
+            {% for provider in featured_providers %}
+            <a class="snap-start min-w-[240px] rounded-2xl bg-white border border-stone-100 shadow-sm overflow-hidden flex-shrink-0"
+                href="{% url 'provider_public_page' provider.slug %}">
+                <div class="relative h-20 w-full bg-stone-100">
+                    {% if provider.cover_image %}
+                    <img src="{{ provider.cover_image.url }}" class="w-full h-full object-cover">
+                    {% else %}
+                    <div class="w-full h-full bg-gradient-to-br from-[#FCEEEB] to-[#FDCCC5]/40"></div>
+                    {% endif %}
+
+                    <!-- آواتار معلق مدرن -->
+                    <div class="absolute -bottom-5 right-4">
+                        {% if provider.avatar %}
+                        <img src="{{ provider.avatar.url }}"
+                            class="w-12 h-12 rounded-full border-2 border-white object-cover shadow-sm">
+                        {% else %}
+                        <div
+                            class="w-12 h-12 rounded-full border-2 border-white bg-stone-200 flex items-center justify-center text-xs">
+                            👤</div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="p-4 pt-7 space-y-2">
+                    <div class="flex items-center justify-between">
+                        <span class="text-sm font-bold text-stone-800">{{ provider.user.fullname }}</span>
+                        <div class="flex items-center gap-0.5 text-xs text-amber-500 font-bold">
+                            <span>★</span>
+                            <span class="text-stone-600 text-[11px] pt-0.5">{{ provider.rating|default:"۰" }}</span>
+                        </div>
+                    </div>
+                    <div class="flex items-center justify-between text-[11px] text-stone-500">
+                        <span>{{ provider.specialty|default:"متخصص زیبایی" }}</span>
+                        <span class="bg-stone-50 px-2 py-0.5 rounded-md border border-stone-100">{{ provider.city
+                            }}</span>
+                    </div>
+                </div>
+            </a>
+            {% empty %}
+            <p class="text-stone-400 text-xs text-center py-6 w-full">متخصصی یافت نشد.</p>
+            {% endfor %}
+        </div>
+    </section>
+
+    <!-- مجله زیبایی / آخرین مطالب -->
+    <section id="blog" class="space-y-4">
+        <h3 class="text-base font-bold text-stone-800">مجله زیبایی</h3>
+        <div class="grid grid-cols-1 gap-4">
+            {% for post in latest_posts|slice:":3" %}
+            <a class="flex gap-3 bg-white p-3 rounded-2xl border border-stone-100 shadow-sm hover:border-stone-200/80 transition-all"
+                href="/blog/{{ post.slug }}/">
+                <div class="w-20 h-20 rounded-xl overflow-hidden bg-stone-50 flex-shrink-0">
+                    {% if post.image %}
+                    <img src="{{ post.image.url }}" class="w-full h-full object-cover">
+                    {% else %}
+                    <div class="w-full h-full bg-[#FCEEEB] flex items-center justify-center text-lg">📝</div>
+                    {% endif %}
+                </div>
+                <div class="flex flex-col justify-between py-0.5">
+                    <h4 class="text-xs font-bold text-stone-800 line-clamp-2 leading-relaxed">{{ post.title }}</h4>
+                    <span class="text-[10px] text-stone-400 flex items-center gap-1">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M8 7V3m8 3V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 002-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        {{ post.created_at|date:"Y/m/d" }}
+                    </span>
+                </div>
+            </a>
+            {% empty %}
+            <p class="text-stone-400 text-xs text-center py-6">مطلبی منتشر نشده است.</p>
+            {% endfor %}
+        </div>
+    </section>
+</section>
+
+<script>
+    // مدیریت دراپ‌داون شهر
+    const cityDisplay = document.getElementById('cityDisplay');
+    const cityDropdown = document.getElementById('cityDropdown');
+    const selectedCity = document.getElementById('selectedCity');
+    const cityForm = document.getElementById('cityForm');
+
+    if (cityDisplay) {
+        cityDisplay.addEventListener('click', (e) => {
+            e.stopPropagation();
+            cityDropdown.classList.toggle('hidden');
+        });
+
+        document.querySelectorAll('#cityDropdown [data-value]').forEach(option => {
+            option.addEventListener('click', () => {
+                selectedCity.value = option.dataset.value;
+                cityForm.submit();
+            });
+        });
+
+        document.addEventListener('click', () => cityDropdown.classList.add('hidden'));
+    }
+
+    // فیلتر تب‌ها به صورت نیتیو و فلت
+    function filterServices(type) {
+        document.querySelectorAll('.service-group').forEach(group => group.classList.add('hidden'));
+        document.getElementById(type + 'Group').classList.remove('hidden');
+
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.classList.remove('active', 'bg-[#FB9D90]', 'text-white', 'border-transparent');
+            btn.classList.add('bg-white', 'border-stone-200', 'text-stone-600');
+        });
+
+        const activeBtn = document.querySelector(`.filter-btn[data-tab="${type}"]`);
+        activeBtn.classList.add('active', 'bg-[#FB9D90]', 'text-white', 'border-transparent');
+        activeBtn.classList.remove('bg-white', 'border-stone-200', 'text-stone-600');
+    }
+    // مقداردهی اولیه به دکمه فعال
+    filterServices('recommended');
+
+    // اسکرول اسلایدر متخصصان با کلیدها (معکوس برای جهت RTL)
+    function scrollProviders(direction) {
+        const slider = document.getElementById('providersSlider');
+        const modifier = direction === 'left' ? -220 : 220;
+        slider.scrollBy({ left: modifier, behavior: 'smooth' });
+    }
+
+    // مکانیزم درگ با موس برای اسلایدر
+    const slider = document.getElementById('providersSlider');
+    let isDown = false; let startX; let scrollLeft;
+
+    slider.addEventListener('mousedown', (e) => {
+        isDown = true; startX = e.pageX - slider.offsetLeft; scrollLeft = slider.scrollLeft;
+    });
+    slider.addEventListener('mouseleave', () => isDown = false);
+    slider.addEventListener('mouseup', () => isDown = false);
+    slider.addEventListener('mousemove', (e) => {
+        if (!isDown) return;
+        e.preventDefault();
+        const x = e.pageX - slider.offsetLeft;
+        const walk = (x - startX) * 1.5;
+        slider.scrollLeft = scrollLeft - walk;
+    });
+</script>
+
+<style>
+    /* مخفی کردن اسکرول‌بار به روش مدرن بدون حذف قابلیت اسکرول */
+    .no-scrollbar::-webkit-scrollbar {
+        display: none;
+    }
+
+    .no-scrollbar {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+    }
+
+    .filter-btn.active {
+        box-shadow: 0 4px 12px rgba(251, 157, 144, 0.2);
+    }
+</style>
+{% endblock %}

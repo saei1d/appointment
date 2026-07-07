@@ -47,8 +47,17 @@ class Provider(models.Model):
         SERIF = 'serif', 'Serif'
         ROUNDED = 'rounded', 'Rounded'
 
+    class FontFamily(models.TextChoices):
+        MIKHAK = 'mikhak', 'میکاک (Mikhak)'
+        LALEZAR = 'lalezar', 'لاله‌زار (Lalezar)'
+        RAZAN = 'razan', 'رازان (Razan)'
+        MFSADU = 'mfsadu', 'ام‌اف‌سادو (MFSADU)'
+        VAZIR = 'vazir', 'وزیر (Vazir)'
+        DIROOZ = 'dirooz', 'دیروز (Dirooz)'
+        RAVI = 'ravi', 'راوی (Ravi)'
+
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='provider_profile')
-    slug = models.SlugField(max_length=80, unique=True, validators=[MinLengthValidator(5)], help_text='Public booking URL slug')
+    slug = models.SlugField(max_length=80, unique=True, validators=[MinLengthValidator(4)], help_text='Public booking URL slug')
     city = models.CharField(max_length=80, default='تهران', db_index=True)
     bio = models.TextField(blank=True)
     avatar = models.ImageField(upload_to='providers/avatars/', blank=True, null=True)
@@ -57,6 +66,7 @@ class Provider(models.Model):
     background_color = models.CharField(max_length=20, default='#fff7fb')
     accent_color = models.CharField(max_length=20, default='#111827')
     typography = models.CharField(max_length=20, choices=Typography.choices, default=Typography.SANS)
+    font_family = models.CharField(max_length=30, choices=FontFamily.choices, default=FontFamily.MIKHAK)
     contact_phone = models.CharField(max_length=20, blank=True)
     instagram = models.URLField(blank=True)
     telegram = models.URLField(blank=True)

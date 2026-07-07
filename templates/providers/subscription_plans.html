@@ -1,1 +1,24 @@
-{% extends 'base.html' %}{% block title %}پلن‌های اشتراک{% endblock %}{% block content %}<div class="max-w-6xl mx-auto px-4 py-10"><h1 class="text-3xl font-black mb-2">انتخاب یا تمدید پلن</h1><p class="text-slate-500 mb-8">قیمت تمدید همیشه از دیتابیس پلن خوانده می‌شود؛ حتی اگر پلن اولیه رایگان بوده باشد.</p><div class="grid md:grid-cols-3 gap-6">{% for plan in plans %}<form method="post" class="bg-white rounded-3xl shadow p-6 flex flex-col">{% csrf_token %}<input type="hidden" name="plan_id" value="{{ plan.id }}"><h3 class="font-black text-2xl mb-2">{{ plan.name }}</h3><p class="text-slate-500 text-sm mb-4">{{ plan.description|truncatewords:18 }}</p><div class="text-3xl font-black text-pink-600 mb-1">{{ plan.price }} تومان</div><div class="text-sm text-slate-500 mb-4">{{ plan.duration_days }} روز</div><ul class="text-sm space-y-2 mb-6 flex-1"><li>{% if plan.can_accept_deposits %}✅{% else %}—{% endif %} پذیرش بیعانه</li><li>{% if plan.can_use_sms %}✅{% else %}—{% endif %} ارسال SMS</li><li>{% if plan.can_manage_products %}✅{% else %}—{% endif %} مدیریت محصولات</li><li>{% if plan.can_view_statistics %}✅{% else %}—{% endif %} مشاهده آمار</li><li>{% if plan.can_create_discounts %}✅{% else %}—{% endif %} ایجاد تخفیف</li><li>{% if plan.can_use_loyalty %}✅{% else %}—{% endif %} برنامه وفاداری</li></ul><button class="w-full bg-pink-600 text-white py-3 rounded-2xl hover:bg-pink-700 transition">انتخاب پلن</button></form>{% empty %}<div class="col-span-3 bg-white rounded-3xl shadow p-6 text-center text-slate-500">پلنی وجود ندارد</div>{% endfor %}</div></div>{% endblock %}
+{% extends 'base.html' %}{% block title %}پلن‌های اشتراک{% endblock %}{% block content %}<div
+    class="max-w-6xl mx-auto px-4 py-10">
+    <h1 class="text-3xl font-black mb-2">انتخاب یا تمدید پلن</h1>
+    <p class="text-stone-500 mb-8">قیمت تمدید همیشه از دیتابیس پلن خوانده می‌شود؛ حتی اگر پلن اولیه رایگان بوده باشد.
+    </p>
+    <div class="grid md:grid-cols-3 gap-6">{% for plan in plans %}<form method="post"
+            class="bg-white rounded-3xl shadow p-6 flex flex-col">{% csrf_token %}<input type="hidden" name="plan_id"
+                value="{{ plan.id }}">
+            <h3 class="font-black text-2xl mb-2">{{ plan.name }}</h3>
+            <p class="text-stone-500 text-sm mb-4">{{ plan.description|truncatewords:18 }}</p>
+            <div class="text-3xl font-black text-[#FB9D90] mb-1">{{ plan.price }} تومان</div>
+            <div class="text-sm text-stone-500 mb-4">{{ plan.duration_days }} روز</div>
+            <ul class="text-sm space-y-2 mb-6 flex-1">
+                <li>{% if plan.can_accept_deposits %}✅{% else %}—{% endif %} پذیرش بیعانه</li>
+                <li>{% if plan.can_use_sms %}✅{% else %}—{% endif %} ارسال SMS</li>
+                <li>{% if plan.can_manage_products %}✅{% else %}—{% endif %} مدیریت محصولات</li>
+                <li>{% if plan.can_view_statistics %}✅{% else %}—{% endif %} مشاهده آمار</li>
+                <li>{% if plan.can_create_discounts %}✅{% else %}—{% endif %} ایجاد تخفیف</li>
+                <li>{% if plan.can_use_loyalty %}✅{% else %}—{% endif %} برنامه وفاداری</li>
+            </ul><button class="w-full bg-[#FDCCC5] text-white py-3 rounded-2xl hover:bg-[#FB9D90] transition">انتخاب
+                پلن</button>
+        </form>{% empty %}<div class="col-span-3 bg-white rounded-3xl shadow p-6 text-center text-stone-500">پلنی وجود
+            ندارد</div>{% endfor %}</div>
+</div>{% endblock %}

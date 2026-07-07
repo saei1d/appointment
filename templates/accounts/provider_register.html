@@ -1,1 +1,152 @@
-{% extends 'base.html' %}{% block title %}ثبت متخصص{% endblock %}{% block content %}<section class="p-4"><div class="rounded-[2rem] bg-[#fdccc5] p-6 text-center shadow"><h1 class="brand text-4xl">ثبت صفحه متخصص</h1><p class="mt-2 text-sm text-stone-700">اطلاعات فعلی مدل Provider را کامل کن و بعد پلن را انتخاب کن.</p></div><form method="post" class="mt-4 space-y-3 rounded-[2rem] bg-white p-5 shadow">{% csrf_token %}<input name="fullname" value="{{ request.user.fullname }}" class="w-full rounded-2xl border p-3" placeholder="نام سالن یا متخصص" required><div><input name="slug" value="{{ provider.slug|default:'' }}" class="w-full rounded-2xl border p-3 ltr" placeholder="آدرس انگلیسی اختصاصی" hx-get="{% url 'check_slug' %}" hx-trigger="keyup changed delay:500ms" hx-target="#slug-result"><div id="slug-result" class="mt-1 text-xs"></div></div><input name="city" value="{{ provider.city|default:request.user.city }}" class="w-full rounded-2xl border p-3" placeholder="شهر" required><textarea name="bio" class="w-full rounded-2xl border p-3" rows="3" placeholder="معرفی کوتاه">{{ provider.bio|default:'' }}</textarea><input name="contact_phone" value="{{ provider.contact_phone|default:'' }}" class="w-full rounded-2xl border p-3" placeholder="شماره تماس"><input name="whatsapp" value="{{ provider.whatsapp|default:'' }}" class="w-full rounded-2xl border p-3" placeholder="واتساپ"><input name="instagram" value="{{ provider.instagram|default:'' }}" class="w-full rounded-2xl border p-3" placeholder="لینک اینستاگرام"><input name="telegram" value="{{ provider.telegram|default:'' }}" class="w-full rounded-2xl border p-3" placeholder="لینک تلگرام"><textarea name="address" class="w-full rounded-2xl border p-3" rows="2" placeholder="آدرس">{{ provider.address|default:'' }}</textarea><button class="w-full rounded-2xl bg-stone-950 py-4 font-black text-white">ذخیره و ادامه</button></form></section>{% endblock %}
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}ثبت متخصص{% endblock %}
+
+{% block content %}
+<section class="p-4 space-y-6">
+    <!-- هدر -->
+    <div class="relative rounded-[2rem] overflow-hidden bg-gradient-to-br from-[#FDCCC5] to-[#FB9D90] p-6 shadow-lg">
+        <div class="absolute -top-10 -right-10 w-32 h-32 rounded-full bg-white/20 blur-2xl"></div>
+        <div class="absolute -bottom-10 -left-10 w-40 h-40 rounded-full bg-white/10 blur-2xl"></div>
+
+        <div class="relative text-center">
+            <span class="text-5xl block mb-3">💼</span>
+            <h1 class="brand text-4xl text-white">ثبت صفحه متخصص</h1>
+            <p class="mt-2 text-sm text-white/90">اطلاعات خود را تکمیل کنید و کسب‌وکار خود را راه‌اندازی کنید</p>
+        </div>
+    </div>
+
+    <!-- فرم -->
+    <form method="post" class="space-y-4 rounded-[2rem] bg-white p-6 shadow-lg" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <!-- اطلاعات شخصی -->
+        <div class="bg-[#FDCCC5]/10 rounded-2xl p-4">
+            <h3 class="brand text-lg text-stone-700 mb-3">👤 اطلاعات شخصی</h3>
+
+            <div class="space-y-3">
+                <div>
+                    <label class="text-sm text-stone-600 block mb-1">نام و نام خانوادگی</label>
+                    <input name="fullname" value="{{ request.user.fullname }}"
+                        class="w-full rounded-2xl border-2 border-[#FDCCC5]/30 p-3 focus:border-[#FB9D90] focus:outline-none transition-all"
+                        placeholder="نام سالن یا متخصص" required>
+                </div>
+
+
+                <!-- آدرس اینترنتی (اسلاگ) با نمایش دامنه ثابت -->
+                <div>
+                    <label class="text-sm text-stone-600 block mb-1">🌐 آدرس اینترنتی صفحه شما</label>
+                    <div class="relative">
+                        <div
+                            class="absolute left-0 top-0 h-full flex items-center px-4 bg-[#FDCCC5]/20 rounded-r-2xl border-2 border-l-0 border-[#FDCCC5]/30 z-10">
+                            <span class="text-xs text-stone-500 font-mono whitespace-nowrap">/mydomain.com</span>
+                        </div>
+                        <input name="slug" value="{{ provider.slug|default:'' }}"
+                            class="w-full rounded-2xl border-2 border-[#FDCCC5]/30 p-3 pl-44 pr-4 ltr focus:border-[#FB9D90] focus:outline-none transition-all font-mono text-left"
+                            placeholder="example" hx-get="{% url 'check_slug' %}" hx-trigger="keyup changed delay:500ms"
+                            hx-target="#slug-result" dir="ltr" style="padding-left: 160px;">
+                    </div>
+                    <div id="slug-result" class="mt-1 text-xs"></div>
+                    <p class="text-xs text-stone-400 mt-1">🔹 آدرس اختصاصی صفحه شما برای نمایش به مشتریان</p>
+                    <p class="text-xs text-stone-400">🔹 فقط از حروف انگلیسی، اعداد و خط تیره استفاده کنید</p>
+                </div>
+
+                <div>
+                    <label class="text-sm text-stone-600 block mb-1">شهر</label>
+                    <input name="city" value="{{ provider.city|default:request.user.city }}"
+                        class="w-full rounded-2xl border-2 border-[#FDCCC5]/30 p-3 focus:border-[#FB9D90] focus:outline-none transition-all"
+                        placeholder="شهر" required>
+                </div>
+            </div>
+        </div>
+
+        <!-- توضیحات -->
+        <div class="bg-[#FDCCC5]/10 rounded-2xl p-4">
+            <h3 class="brand text-lg text-stone-700 mb-3">📝 درباره کسب‌وکار</h3>
+            <textarea name="bio"
+                class="w-full rounded-2xl border-2 border-[#FDCCC5]/30 p-3 focus:border-[#FB9D90] focus:outline-none transition-all"
+                rows="3" placeholder="معرفی کوتاه از سالن یا تخصص خود">{{ provider.bio|default:'' }}</textarea>
+        </div>
+
+        <!-- اطلاعات تماس -->
+        <div class="bg-[#FDCCC5]/10 rounded-2xl p-4">
+            <h3 class="brand text-lg text-stone-700 mb-3">📱 اطلاعات تماس</h3>
+
+            <div class="space-y-3">
+                <div>
+                    <label class="text-sm text-stone-600 block mb-1">شماره تماس</label>
+                    <input name="contact_phone" value="{{ provider.contact_phone|default:'' }}"
+                        class="w-full rounded-2xl border-2 border-[#FDCCC5]/30 p-3 focus:border-[#FB9D90] focus:outline-none transition-all"
+                        placeholder="شماره تماس">
+                </div>
+
+                <div>
+                    <label class="text-sm text-stone-600 block mb-1">واتساپ</label>
+                    <input name="whatsapp" value="{{ provider.whatsapp|default:'' }}"
+                        class="w-full rounded-2xl border-2 border-[#FDCCC5]/30 p-3 focus:border-[#FB9D90] focus:outline-none transition-all"
+                        placeholder="لینک واتساپ">
+                </div>
+            </div>
+        </div>
+
+        <!-- شبکه‌های اجتماعی -->
+        <div class="bg-[#FDCCC5]/10 rounded-2xl p-4">
+            <h3 class="brand text-lg text-stone-700 mb-3">🌐 شبکه‌های اجتماعی</h3>
+
+            <div class="space-y-3">
+                <div>
+                    <label class="text-sm text-stone-600 block mb-1">اینستاگرام</label>
+                    <input name="instagram" value="{{ provider.instagram|default:'' }}"
+                        class="w-full rounded-2xl border-2 border-[#FDCCC5]/30 p-3 focus:border-[#FB9D90] focus:outline-none transition-all"
+                        placeholder="لینک اینستاگرام">
+                </div>
+
+                <div>
+                    <label class="text-sm text-stone-600 block mb-1">تلگرام</label>
+                    <input name="telegram" value="{{ provider.telegram|default:'' }}"
+                        class="w-full rounded-2xl border-2 border-[#FDCCC5]/30 p-3 focus:border-[#FB9D90] focus:outline-none transition-all"
+                        placeholder="لینک تلگرام">
+                </div>
+            </div>
+        </div>
+
+        <!-- آدرس -->
+        <div class="bg-[#FDCCC5]/10 rounded-2xl p-4">
+            <h3 class="brand text-lg text-stone-700 mb-3">📍 آدرس</h3>
+            <textarea name="address"
+                class="w-full rounded-2xl border-2 border-[#FDCCC5]/30 p-3 focus:border-[#FB9D90] focus:outline-none transition-all"
+                rows="2" placeholder="آدرس کامل">{{ provider.address|default:'' }}</textarea>
+        </div>
+
+        <!-- دکمه ارسال -->
+        <button type="submit"
+            class="w-full rounded-2xl bg-gradient-to-r from-[#FB9D90] to-[#FDCCC5] py-4 font-black text-white shadow-lg hover:shadow-xl transition-all hover:scale-[1.02]">
+            🚀 ذخیره و ادامه
+        </button>
+
+        <!-- راهنما -->
+        <div class="text-center text-xs text-stone-400 mt-2">
+            <span>💡 پس از ثبت، می‌توانید اطلاعات خود را ویرایش کنید</span>
+        </div>
+    </form>
+</section>
+
+
+<!-- اسکریپت بهبود نمایش اسلاگ -->
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const slugInput = document.querySelector('input[name="slug"]');
+        if (slugInput) {
+            // نمایش پیش‌نمایش آدرس کامل
+            slugInput.addEventListener('input', function () {
+                const preview = document.getElementById('slug-preview');
+                if (preview) {
+                    const slug = this.value.trim() || 'نام-اختصاصی-شما';
+                    preview.textContent = 'mydomain.com/' + slug;
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}

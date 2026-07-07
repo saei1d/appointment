@@ -1,1 +1,422 @@
-{% extends 'base.html' %}{% block title %}داشبورد ارائه‌دهنده{% endblock %}{% block content %}<section class="p-4 space-y-5"><div class="flex items-start justify-between gap-3"><div><h1 class="brand text-4xl">داشبورد</h1><p class="text-sm text-stone-500">{{ provider.user.fullname }}</p></div><a class="rounded-2xl bg-stone-950 px-4 py-3 text-xs text-white" href="{% url 'provider_public_page' provider.slug %}">صفحه عمومی</a></div><div class="grid grid-cols-3 gap-2 text-center"><div class="rounded-3xl bg-white p-4 shadow"><small>اشتراک</small><b class="block">{% if subscription %}{{ subscription.days_remaining }} روز{% else %}ندارد{% endif %}</b></div><div class="rounded-3xl bg-white p-4 shadow"><small>رزرو</small><b class="block">{{ appointments|length }}</b></div><div class="rounded-3xl bg-white p-4 shadow"><small>خدمات</small><b class="block">{{ provider.services.count }}</b></div></div><form method="post" enctype="multipart/form-data" class="space-y-3 rounded-[2rem] bg-white p-5 shadow">{% csrf_token %}<h2 class="brand text-3xl">ظاهر صفحه</h2><input name="city" value="{{ provider.city }}" class="w-full rounded-2xl border p-3" placeholder="شهر"><textarea name="bio" class="w-full rounded-2xl border p-3" rows="3" placeholder="بیوگرافی">{{ provider.bio }}</textarea><textarea name="address" class="w-full rounded-2xl border p-3" rows="2" placeholder="آدرس">{{ provider.address }}</textarea><input name="contact_phone" value="{{ provider.contact_phone }}" class="w-full rounded-2xl border p-3" placeholder="شماره تماس"><div class="grid grid-cols-3 gap-2"><label class="text-xs">اصلی<input type="color" name="theme_color" value="{{ provider.theme_color }}" class="mt-1 h-12 w-full"></label><label class="text-xs">پس‌زمینه<input type="color" name="background_color" value="{{ provider.background_color }}" class="mt-1 h-12 w-full"></label><label class="text-xs">تأکید<input type="color" name="accent_color" value="{{ provider.accent_color }}" class="mt-1 h-12 w-full"></label></div><select name="typography" class="w-full rounded-2xl border p-3"><option value="sans">ساده</option><option value="serif">رسمی</option><option value="rounded">گرد</option></select><label class="block text-sm">پروفایل<input type="file" name="avatar" class="mt-1 w-full rounded-2xl border p-3"></label><label class="block text-sm">بنر<input type="file" name="cover_image" class="mt-1 w-full rounded-2xl border p-3"></label><button class="w-full rounded-2xl bg-pink-500 py-3 text-white">ذخیره</button></form><div class="grid gap-2"><a class="rounded-2xl bg-white p-4 shadow" href="{% url 'working_hours' %}">مدیریت ساعات کاری</a><a class="rounded-2xl bg-white p-4 shadow" href="{% url 'service_list' %}">مدیریت خدمات</a></div><section><h2 class="brand text-3xl">رزروهای اخیر</h2>{% for appointment in appointments %}<div class="mt-2 rounded-2xl bg-white p-3 shadow"><b>{{ appointment.customer.fullname|default:appointment.customer.phone }}</b><p class="text-sm text-stone-500">{{ appointment.service.name }} - {{ appointment.date }} {{ appointment.start_time }}</p></div>{% empty %}<p class="rounded-2xl bg-white p-4 shadow">رزروی وجود ندارد.</p>{% endfor %}</section></section>{% endblock %}
+{% extends 'base.html' %}
+
+{% block title %}داشبورد ارائه‌دهنده{% endblock %}
+
+{% block content %}
+{% load static %}
+<style>
+  @font-face { font-family: 'Mikhak'; src: url('{% static "fonts/web/mikhak/Mikhak-Regular.woff2" %}') format('woff2'); font-weight: 400; font-display: swap; }
+  @font-face { font-family: 'Mikhak'; src: url('{% static "fonts/web/mikhak/Mikhak-Medium.woff2" %}') format('woff2'); font-weight: 500; font-display: swap; }
+  @font-face { font-family: 'Mikhak'; src: url('{% static "fonts/web/mikhak/Mikhak-Bold.woff2" %}') format('woff2'); font-weight: 700; font-display: swap; }
+  @font-face { font-family: 'Mikhak'; src: url('{% static "fonts/web/mikhak/Mikhak-Light.woff2" %}') format('woff2'); font-weight: 300; font-display: swap; }
+  @font-face { font-family: 'Lalezar'; src: url('{% static "fonts/web/lalezar/Digi Lalezar Plus.ttf" %}') format('truetype'); font-weight: 400; font-display: swap; }
+  @font-face { font-family: 'Razan'; src: url('{% static "fonts/web/razan/Razan-Regular.ttf" %}') format('truetype'); font-weight: 400; font-display: swap; }
+  @font-face { font-family: 'Razan'; src: url('{% static "fonts/web/razan/Razan-Medium.ttf" %}') format('truetype'); font-weight: 500; font-display: swap; }
+  @font-face { font-family: 'Razan'; src: url('{% static "fonts/web/razan/Razan-Bold.ttf" %}') format('truetype'); font-weight: 700; font-display: swap; }
+  @font-face { font-family: 'Razan'; src: url('{% static "fonts/web/razan/Razan-Light.ttf" %}') format('truetype'); font-weight: 300; font-display: swap; }
+  @font-face { font-family: 'MFSADU'; src: url('{% static "fonts/web/mfsadu/MFSADU-Regular.ttf" %}') format('truetype'); font-weight: 400; font-display: swap; }
+  @font-face { font-family: 'MFSADU'; src: url('{% static "fonts/web/mfsadu/MFSADU-Medium.ttf" %}') format('truetype'); font-weight: 500; font-display: swap; }
+  @font-face { font-family: 'MFSADU'; src: url('{% static "fonts/web/mfsadu/MFSADU-Bold.ttf" %}') format('truetype'); font-weight: 700; font-display: swap; }
+  @font-face { font-family: 'MFSADU'; src: url('{% static "fonts/web/mfsadu/MFSADU-Light.ttf" %}') format('truetype'); font-weight: 300; font-display: swap; }
+  @font-face { font-family: 'Vazir'; src: url('{% static "fonts/web/vazir/Vazir-Regular.woff2" %}') format('woff2'); font-weight: 400; font-display: swap; }
+  @font-face { font-family: 'Vazir'; src: url('{% static "fonts/web/vazir/Vazir-Medium.woff2" %}') format('woff2'); font-weight: 500; font-display: swap; }
+  @font-face { font-family: 'Vazir'; src: url('{% static "fonts/web/vazir/Vazir-Bold.woff2" %}') format('woff2'); font-weight: 700; font-display: swap; }
+  @font-face { font-family: 'Vazir'; src: url('{% static "fonts/web/vazir/Vazir-Light.woff2" %}') format('woff2'); font-weight: 300; font-display: swap; }
+  @font-face { font-family: 'YekanBakh'; src: url('{% static "fonts/web/yekanbakh/YekanBakh-Regular.woff2" %}') format('woff2'); font-weight: 400; font-display: swap; }
+  @font-face { font-family: 'YekanBakh'; src: url('{% static "fonts/web/yekanbakh/YekanBakh-Bold.woff2" %}') format('woff2'); font-weight: 700; font-display: swap; }
+  @font-face { font-family: 'YekanBakh'; src: url('{% static "fonts/web/yekanbakh/YekanBakh-Light.woff2" %}') format('woff2'); font-weight: 300; font-display: swap; }
+  @font-face { font-family: 'YekanBakh'; src: url('{% static "fonts/web/yekanbakh/YekanBakh-Black.woff2" %}') format('woff2'); font-weight: 900; font-display: swap; }
+  @font-face { font-family: 'Ravi'; src: url('{% static "fonts/web/ravi/Ravi-Regular.ttf" %}') format('truetype'); font-weight: 400; font-display: swap; }
+  @font-face { font-family: 'Ravi'; src: url('{% static "fonts/web/ravi/Ravi-Medium.ttf" %}') format('truetype'); font-weight: 500; font-display: swap; }
+  @font-face { font-family: 'Ravi'; src: url('{% static "fonts/web/ravi/Ravi-Bold.ttf" %}') format('truetype'); font-weight: 700; font-display: swap; }
+  @font-face { font-family: 'Ravi'; src: url('{% static "fonts/web/ravi/Ravi-Light.ttf" %}') format('truetype'); font-weight: 300; font-display: swap; }
+</style>
+<section class="max-w-5xl mx-auto p-4 md:p-6 space-y-6">
+  
+  <!-- Header با گرادیانت و افکت -->
+  <div class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-stone-900 to-stone-800 p-5 md:p-6 text-white">
+    <!-- افکت‌های پس‌زمینه -->
+    <div class="absolute top-0 right-0 w-64 h-64 bg-rose-500/10 rounded-full blur-3xl"></div>
+    <div class="absolute bottom-0 left-0 w-48 h-48 bg-amber-500/10 rounded-full blur-3xl"></div>
+    
+    <div class="relative flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+      <div class="space-y-2">
+        <div class="flex items-center gap-3 flex-wrap">
+          <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-white/10 backdrop-blur rounded-full text-xs font-medium">
+            <span class="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse"></span>
+            فعال
+          </span>
+          {% if subscription %}
+          <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-500/20 backdrop-blur rounded-full text-xs font-medium text-amber-200">
+            {{ subscription.days_remaining }} روز باقی‌مانده
+          </span>
+          {% endif %}
+        </div>
+        <h1 class="text-xl md:text-2xl font-bold tracking-tight">خوش آمدید، {{ provider.user.fullname }}</h1>
+        <p class="text-stone-400 text-sm">مدیریت کامل کسب‌وکار خود را اینجا انجام دهید</p>
+      </div>
+      
+      <a href="{% url 'provider_public_page' provider.slug %}" 
+         class="inline-flex items-center gap-2 px-5 py-2.5 bg-white/10 hover:bg-white/20 backdrop-blur rounded-2xl text-sm font-medium transition-all duration-300 border border-white/10 hover:scale-105 whitespace-nowrap">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+        </svg>
+        مشاهده صفحه عمومی
+      </a>
+    </div>
+  </div>
+
+  <!-- کارت‌های آمار با آیکون و انیمیشن -->
+  <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+    <div class="group bg-white rounded-2xl p-5 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border border-stone-100">
+      <div class="flex items-center gap-4">
+        <div class="w-12 h-12 rounded-2xl bg-rose-50 group-hover:bg-rose-100 transition-colors flex items-center justify-center">
+          <svg class="w-6 h-6 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 012 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+          </svg>
+        </div>
+        <div>
+          <p class="text-sm text-stone-500 font-medium">اشتراک</p>
+          <p class="text-2xl font-bold text-stone-900">
+            {% if subscription %}{{ subscription.days_remaining }}{% else %}۰{% endif %}
+            <span class="text-sm font-normal text-stone-400">روز</span>
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="group bg-white rounded-2xl p-5 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border border-stone-100">
+      <div class="flex items-center gap-4">
+        <div class="w-12 h-12 rounded-2xl bg-blue-50 group-hover:bg-blue-100 transition-colors flex items-center justify-center">
+          <svg class="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+          </svg>
+        </div>
+        <div>
+          <p class="text-sm text-stone-500 font-medium">رزروها</p>
+          <p class="text-2xl font-bold text-stone-900">
+            {{ appointments|length }}
+            <span class="text-sm font-normal text-stone-400">نوبت</span>
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="group bg-white rounded-2xl p-5 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border border-stone-100">
+      <div class="flex items-center gap-4">
+        <div class="w-12 h-12 rounded-2xl bg-emerald-50 group-hover:bg-emerald-100 transition-colors flex items-center justify-center">
+          <svg class="w-6 h-6 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+          </svg>
+        </div>
+        <div>
+          <p class="text-sm text-stone-500 font-medium">خدمات</p>
+          <p class="text-2xl font-bold text-stone-900">
+            {{ provider.services.count }}
+            <span class="text-sm font-normal text-stone-400">خدمت</span>
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- فرم تنظیمات -->
+  <form id="provider-form" method="post" enctype="multipart/form-data" class="bg-white rounded-3xl shadow-sm border border-stone-100 overflow-hidden">
+    {% csrf_token %}
+    
+    <div class="px-6 py-4 border-b border-stone-100 bg-stone-50/50">
+      <h2 class="text-xl font-bold text-stone-900">تنظیمات کسب‌وکار</h2>
+      <p class="text-sm text-stone-500">اطلاعات خود را کامل کنید تا مشتریان بهتر شما را پیدا کنند</p>
+    </div>
+
+    <div class="p-6 space-y-6">
+      
+      <!-- شهر ارائه خدمات (غیرقابل تغییر) -->
+      <div class="bg-stone-50 rounded-2xl p-4 border border-stone-200">
+        <label class="block text-sm font-semibold text-stone-700 mb-1.5">
+          شهر ارائه خدمات
+        </label>
+        <input 
+          name="provider_city" 
+          value="{{ provider.city }}" 
+          disabled
+          class="w-full rounded-xl border border-stone-300 bg-stone-100 px-4 py-2.5 text-sm text-stone-600 cursor-not-allowed"
+          placeholder="مثال: تهران، اصفهان، شیراز ..."
+        >
+        <p class="text-xs text-amber-600 mt-2">⚠️ برای تغییر شهر ارائه خدمات به ادمین سایت مراجعه کنید</p>
+      </div>
+
+      <!-- بیوگرافی و آدرس -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-semibold text-stone-700 mb-1.5">بیوگرافی</label>
+          <textarea name="bio" class="w-full rounded-xl border border-stone-200 px-4 py-2.5 text-sm focus:ring-2 focus:ring-rose-300 focus:border-transparent transition resize-none" rows="3" placeholder="درباره خودتان بنویسید...">{{ provider.bio }}</textarea>
+        </div>
+        <div>
+          <label class="block text-sm font-semibold text-stone-700 mb-1.5">آدرس</label>
+          <textarea name="address" class="w-full rounded-xl border border-stone-200 px-4 py-2.5 text-sm focus:ring-2 focus:ring-rose-300 focus:border-transparent transition resize-none" rows="3" placeholder="آدرس دقیق">{{ provider.address }}</textarea>
+        </div>
+      </div>
+
+      <!-- اطلاعات تماس -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-semibold text-stone-700 mb-1.5">شماره تماس</label>
+          <input name="contact_phone" value="{{ provider.contact_phone }}" class="w-full rounded-xl border border-stone-200 px-4 py-2.5 text-sm focus:ring-2 focus:ring-rose-300 focus:border-transparent transition" placeholder="۰۹۱۲XXX">
+        </div>
+        <div>
+          <label class="block text-sm font-semibold text-stone-700 mb-1.5">لینک گوگل مپ</label>
+          <input name="google_map_url" value="{{ provider.google_map_url }}" class="w-full rounded-xl border border-stone-200 px-4 py-2.5 text-sm focus:ring-2 focus:ring-rose-300 focus:border-transparent transition" placeholder="https://maps.google.com/...">
+        </div>
+      </div>
+
+      <!-- شبکه‌های اجتماعی - دو تا در هر ردیف -->
+      <div>
+        <label class="block text-sm font-semibold text-stone-700 mb-2">شبکه‌های اجتماعی</label>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div>
+            <label class="text-xs text-stone-500 block mb-1">اینستاگرام</label>
+            <input name="instagram" value="{{ provider.instagram }}" class="w-full rounded-xl border border-stone-200 px-4 py-2.5 text-sm focus:ring-2 focus:ring-rose-300 focus:border-transparent transition" placeholder="https://instagram.com/...">
+          </div>
+          <div>
+            <label class="text-xs text-stone-500 block mb-1">تلگرام</label>
+            <input name="telegram" value="{{ provider.telegram }}" class="w-full rounded-xl border border-stone-200 px-4 py-2.5 text-sm focus:ring-2 focus:ring-rose-300 focus:border-transparent transition" placeholder="https://t.me/...">
+          </div>
+          <div>
+            <label class="text-xs text-stone-500 block mb-1">واتساپ</label>
+            <input name="whatsapp" value="{{ provider.whatsapp }}" class="w-full rounded-xl border border-stone-200 px-4 py-2.5 text-sm focus:ring-2 focus:ring-rose-300 focus:border-transparent transition" placeholder="https://wa.me/...">
+          </div>
+        </div>
+      </div>
+
+      <!-- رنگ‌ها با استایل جدید -->
+      <div>
+        <label class="block text-sm font-semibold text-stone-700 mb-2">رنگ‌های تم</label>
+        <div class="grid grid-cols-3 gap-3">
+          <label class="flex items-center gap-3 bg-stone-50 rounded-xl px-4 py-3 border border-stone-200 cursor-pointer hover:border-stone-300 transition">
+            <span class="text-xs font-medium text-stone-600 min-w-[50px]">اصلی</span>
+            <input type="color" name="theme_color" value="{{ provider.theme_color }}" class="w-full h-9 rounded-lg cursor-pointer border-0 p-0 bg-transparent">
+          </label>
+          <label class="flex items-center gap-3 bg-stone-50 rounded-xl px-4 py-3 border border-stone-200 cursor-pointer hover:border-stone-300 transition">
+            <span class="text-xs font-medium text-stone-600 min-w-[50px]">پس‌زمینه</span>
+            <input type="color" name="background_color" value="{{ provider.background_color }}" class="w-full h-9 rounded-lg cursor-pointer border-0 p-0 bg-transparent">
+          </label>
+          <label class="flex items-center gap-3 bg-stone-50 rounded-xl px-4 py-3 border border-stone-200 cursor-pointer hover:border-stone-300 transition">
+            <span class="text-xs font-medium text-stone-600 min-w-[50px]">تأکید</span>
+            <input type="color" name="accent_color" value="{{ provider.accent_color }}" class="w-full h-9 rounded-lg cursor-pointer border-0 p-0 bg-transparent">
+          </label>
+        </div>
+      </div>
+
+      <!-- تایپوگرافی و فونت -->
+      <div>
+        <label class="block text-sm font-semibold text-stone-700 mb-1.5">تایپوگرافی</label>
+        <select name="typography" class="w-full rounded-xl border border-stone-200 px-4 py-2.5 text-sm focus:ring-2 focus:ring-rose-300 focus:border-transparent transition bg-white">
+          <option value="sans" {% if provider.typography == 'sans' %}selected{% endif %}>ساده (Sans)</option>
+          <option value="serif" {% if provider.typography == 'serif' %}selected{% endif %}>رسمی (Serif)</option>
+          <option value="rounded" {% if provider.typography == 'rounded' %}selected{% endif %}>گرد (Rounded)</option>
+        </select>
+      </div>
+
+      <div>
+        <label class="block text-sm font-semibold text-stone-700 mb-2">فونت صفحه عمومی</label>
+        <p class="text-xs text-stone-400 mb-3">روی فونت مورد نظر کلیک کنید تا انتخاب شود</p>
+        <div class="grid grid-cols-2 gap-2" id="font-grid">
+
+          <label class="font-card relative cursor-pointer rounded-xl border-2 transition-all duration-200 overflow-hidden {% if provider.font_family == 'mikhak' %}border-rose-500 bg-rose-50 shadow-md{% else %}border-stone-200 bg-white hover:border-stone-300 hover:shadow-sm{% endif %}">
+            <input type="radio" name="font_family" value="mikhak" class="hidden" {% if provider.font_family == 'mikhak' %}checked{% endif %}>
+            <div class="p-3 text-center">
+              <p class="text-lg text-stone-800 leading-relaxed" style="font-family: 'Mikhak'; font-weight: 700;">نوبتینو</p>
+              <p class="text-sm text-stone-600 leading-relaxed" style="font-family: 'Mikhak'; font-weight: 500;">سبک و مدرن</p>
+              <p class="text-xs text-stone-400 leading-relaxed" style="font-family: 'Mikhak'; font-weight: 300;">میکاک</p>
+            </div>
+            {% if provider.font_family == 'mikhak' %}<div class="absolute top-1.5 left-1.5 w-4 h-4 bg-rose-500 rounded-full flex items-center justify-center"><svg class="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg></div>{% endif %}
+          </label>
+
+          <label class="font-card relative cursor-pointer rounded-xl border-2 transition-all duration-200 overflow-hidden {% if provider.font_family == 'lalezar' %}border-rose-500 bg-rose-50 shadow-md{% else %}border-stone-200 bg-white hover:border-stone-300 hover:shadow-sm{% endif %}">
+            <input type="radio" name="font_family" value="lalezar" class="hidden" {% if provider.font_family == 'lalezar' %}checked{% endif %}>
+            <div class="p-3 text-center">
+              <p class="text-lg text-stone-800 leading-relaxed" style="font-family: 'Lalezar'; font-weight: 400;">نوبتینو</p>
+              <p class="text-sm text-stone-600 leading-relaxed" style="font-family: 'Lalezar'; font-weight: 400;">نمایشی و جذاب</p>
+              <p class="text-xs text-stone-400 leading-relaxed" style="font-family: 'Lalezar'; font-weight: 400;">لاله‌زار</p>
+            </div>
+            {% if provider.font_family == 'lalezar' %}<div class="absolute top-1.5 left-1.5 w-4 h-4 bg-rose-500 rounded-full flex items-center justify-center"><svg class="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg></div>{% endif %}
+          </label>
+
+          <label class="font-card relative cursor-pointer rounded-xl border-2 transition-all duration-200 overflow-hidden {% if provider.font_family == 'razan' %}border-rose-500 bg-rose-50 shadow-md{% else %}border-stone-200 bg-white hover:border-stone-300 hover:shadow-sm{% endif %}">
+            <input type="radio" name="font_family" value="razan" class="hidden" {% if provider.font_family == 'razan' %}checked{% endif %}>
+            <div class="p-3 text-center">
+              <p class="text-lg text-stone-800 leading-relaxed" style="font-family: 'Razan'; font-weight: 700;">نوبتینو</p>
+              <p class="text-sm text-stone-600 leading-relaxed" style="font-family: 'Razan'; font-weight: 500;">زیبا و خوانا</p>
+              <p class="text-xs text-stone-400 leading-relaxed" style="font-family: 'Razan'; font-weight: 300;">رازان</p>
+            </div>
+            {% if provider.font_family == 'razan' %}<div class="absolute top-1.5 left-1.5 w-4 h-4 bg-rose-500 rounded-full flex items-center justify-center"><svg class="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg></div>{% endif %}
+          </label>
+
+          <label class="font-card relative cursor-pointer rounded-xl border-2 transition-all duration-200 overflow-hidden {% if provider.font_family == 'mfsadu' %}border-rose-500 bg-rose-50 shadow-md{% else %}border-stone-200 bg-white hover:border-stone-300 hover:shadow-sm{% endif %}">
+            <input type="radio" name="font_family" value="mfsadu" class="hidden" {% if provider.font_family == 'mfsadu' %}checked{% endif %}>
+            <div class="p-3 text-center">
+              <p class="text-lg text-stone-800 leading-relaxed" style="font-family: 'MFSADU'; font-weight: 700;">نوبتینو</p>
+              <p class="text-sm text-stone-600 leading-relaxed" style="font-family: 'MFSADU'; font-weight: 500;">خاص و منحصر</p>
+              <p class="text-xs text-stone-400 leading-relaxed" style="font-family: 'MFSADU'; font-weight: 300;">ام‌اف‌سادو</p>
+            </div>
+            {% if provider.font_family == 'mfsadu' %}<div class="absolute top-1.5 left-1.5 w-4 h-4 bg-rose-500 rounded-full flex items-center justify-center"><svg class="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg></div>{% endif %}
+          </label>
+
+          <label class="font-card relative cursor-pointer rounded-xl border-2 transition-all duration-200 overflow-hidden {% if provider.font_family == 'vazir' %}border-rose-500 bg-rose-50 shadow-md{% else %}border-stone-200 bg-white hover:border-stone-300 hover:shadow-sm{% endif %}">
+            <input type="radio" name="font_family" value="vazir" class="hidden" {% if provider.font_family == 'vazir' %}checked{% endif %}>
+            <div class="p-3 text-center">
+              <p class="text-lg text-stone-800 leading-relaxed" style="font-family: 'Vazir'; font-weight: 700;">نوبتینو</p>
+              <p class="text-sm text-stone-600 leading-relaxed" style="font-family: 'Vazir'; font-weight: 500;">استاندارد و حرفه‌ای</p>
+              <p class="text-xs text-stone-400 leading-relaxed" style="font-family: 'Vazir'; font-weight: 300;">وزیر</p>
+            </div>
+            {% if provider.font_family == 'vazir' %}<div class="absolute top-1.5 left-1.5 w-4 h-4 bg-rose-500 rounded-full flex items-center justify-center"><svg class="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg></div>{% endif %}
+          </label>
+
+          <label class="font-card relative cursor-pointer rounded-xl border-2 transition-all duration-200 overflow-hidden {% if provider.font_family == 'yekanbakh' %}border-rose-500 bg-rose-50 shadow-md{% else %}border-stone-200 bg-white hover:border-stone-300 hover:shadow-sm{% endif %}">
+            <input type="radio" name="font_family" value="yekanbakh" class="hidden" {% if provider.font_family == 'yekanbakh' %}checked{% endif %}>
+            <div class="p-3 text-center">
+              <p class="text-lg text-stone-800 leading-relaxed" style="font-family: 'YekanBakh'; font-weight: 900;">نوبتینو</p>
+              <p class="text-sm text-stone-600 leading-relaxed" style="font-family: 'YekanBakh'; font-weight: 700;">کامل و حرفه‌ای</p>
+              <p class="text-xs text-stone-400 leading-relaxed" style="font-family: 'YekanBakh'; font-weight: 300;">یکان‌بخ</p>
+            </div>
+            {% if provider.font_family == 'yekanbakh' %}<div class="absolute top-1.5 left-1.5 w-4 h-4 bg-rose-500 rounded-full flex items-center justify-center"><svg class="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg></div>{% endif %}
+          </label>
+
+          <label class="font-card relative cursor-pointer rounded-xl border-2 transition-all duration-200 overflow-hidden {% if provider.font_family == 'ravi' %}border-rose-500 bg-rose-50 shadow-md{% else %}border-stone-200 bg-white hover:border-stone-300 hover:shadow-sm{% endif %}">
+            <input type="radio" name="font_family" value="ravi" class="hidden" {% if provider.font_family == 'ravi' %}checked{% endif %}>
+            <div class="p-3 text-center">
+              <p class="text-lg text-stone-800 leading-relaxed" style="font-family: 'Ravi'; font-weight: 700;">نوبتینو</p>
+              <p class="text-sm text-stone-600 leading-relaxed" style="font-family: 'Ravi'; font-weight: 500;">داستان‌گو</p>
+              <p class="text-xs text-stone-400 leading-relaxed" style="font-family: 'Ravi'; font-weight: 300;">راوی</p>
+            </div>
+            {% if provider.font_family == 'ravi' %}<div class="absolute top-1.5 left-1.5 w-4 h-4 bg-rose-500 rounded-full flex items-center justify-center"><svg class="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg></div>{% endif %}
+          </label>
+        </div>
+      </div>
+
+      <!-- تصاویر - زیر هم -->
+      <div class="space-y-4">
+        <div>
+          <label class="block text-sm font-semibold text-stone-700 mb-1.5">تصویر پروفایل</label>
+          <div class="flex items-center gap-4 mb-2">
+            {% if provider.avatar %}
+            <img src="{{ provider.avatar.url }}" alt="پروفایل" class="w-16 h-16 rounded-full object-cover border-2 border-stone-200">
+            <span class="text-xs text-stone-500 truncate max-w-[200px]">{{ provider.avatar.name|cut:'providers/avatars/' }}</span>
+            {% else %}
+            <div class="w-16 h-16 rounded-full bg-stone-100 flex items-center justify-center border-2 border-dashed border-stone-300">
+              <svg class="w-6 h-6 text-stone-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+              </svg>
+            </div>
+            {% endif %}
+          </div>
+          <input type="file" name="avatar" class="w-full text-sm text-stone-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-medium file:bg-rose-50 file:text-rose-700 hover:file:bg-rose-100 transition">
+        </div>
+
+        <div>
+          <label class="block text-sm font-semibold text-stone-700 mb-1.5">تصویر بنر</label>
+          {% if provider.cover_image %}
+          <div class="mb-2">
+            <img src="{{ provider.cover_image.url }}" alt="بنر" class="w-full h-24 object-cover rounded-xl border border-stone-200">
+            <span class="text-xs text-stone-500 block mt-1">{{ provider.cover_image.name|cut:'providers/covers/' }}</span>
+          </div>
+          {% endif %}
+          <input type="file" name="cover_image" class="w-full text-sm text-stone-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-medium file:bg-rose-50 file:text-rose-700 hover:file:bg-rose-100 transition">
+        </div>
+      </div>
+
+      <!-- دکمه ذخیره -->
+      <button type="submit" class="w-full bg-gradient-to-r from-stone-900 to-stone-800 hover:from-stone-800 hover:to-stone-700 text-white font-medium py-3.5 px-6 rounded-2xl transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-[1.01] active:scale-[0.99] text-sm">
+        ذخیره تغییرات
+      </button>
+    </div>
+  </form>
+
+  <!-- لینک‌های مدیریت -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+    <a href="{% url 'working_hours' %}" class="group bg-white rounded-2xl p-5 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border border-stone-100 flex items-center justify-between">
+      <div>
+        <p class="font-semibold text-stone-900">ساعات کاری</p>
+        <p class="text-sm text-stone-500">مدیریت زمان‌های کاری</p>
+      </div>
+      <div class="w-10 h-10 rounded-xl bg-stone-50 group-hover:bg-stone-100 transition flex items-center justify-center">
+        <svg class="w-5 h-5 text-stone-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+      </div>
+    </a>
+
+    <a href="{% url 'service_list' %}" class="group bg-white rounded-2xl p-5 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border border-stone-100 flex items-center justify-between">
+      <div>
+        <p class="font-semibold text-stone-900">خدمات</p>
+        <p class="text-sm text-stone-500">مدیریت خدمات ارائه‌شده</p>
+      </div>
+      <div class="w-10 h-10 rounded-xl bg-stone-50 group-hover:bg-stone-100 transition flex items-center justify-center">
+        <svg class="w-5 h-5 text-stone-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+        </svg>
+      </div>
+    </a>
+  </div>
+
+  <!-- رزروهای اخیر -->
+  <section class="bg-white rounded-3xl shadow-sm border border-stone-100 overflow-hidden">
+    <div class="px-6 py-4 border-b border-stone-100 bg-stone-50/50 flex items-center justify-between">
+      <div>
+        <h2 class="text-xl font-bold text-stone-900">رزروهای اخیر</h2>
+        <p class="text-sm text-stone-500">آخرین درخواست‌های مشتریان</p>
+      </div>
+      <span class="px-3 py-1 bg-stone-100 rounded-full text-xs font-medium text-stone-600">{{ appointments|length }} رزرو</span>
+    </div>
+
+    <div class="divide-y divide-stone-100">
+      {% for appointment in appointments %}
+      <div class="px-6 py-4 hover:bg-stone-50/50 transition flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-stone-100 flex items-center justify-center text-stone-600 font-bold text-sm">
+            {{ appointment.customer.fullname|default:appointment.customer.phone|slice:":1" }}
+          </div>
+          <div>
+            <p class="font-medium text-stone-900">{{ appointment.customer.fullname|default:appointment.customer.phone }}</p>
+            <p class="text-sm text-stone-500">{{ appointment.service.name }}</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2 text-sm">
+          <span class="px-3 py-1 bg-rose-50 text-rose-600 rounded-lg text-xs font-medium">
+            {{ appointment.date }}
+          </span>
+          <span class="text-stone-400">{{ appointment.start_time }}</span>
+        </div>
+      </div>
+      {% empty %}
+      <div class="px-6 py-8 text-center text-stone-400 text-sm">
+        هیچ رزروی ثبت نشده است
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+
+</section>
+
+<script>
+document.getElementById('font-grid').addEventListener('click', function(e) {
+  const card = e.target.closest('.font-card');
+  if (!card) return;
+  document.querySelectorAll('.font-card').forEach(c => {
+    c.classList.remove('border-rose-500', 'bg-rose-50', 'shadow-md');
+    c.classList.add('border-stone-200');
+    const badge = c.querySelector('.absolute');
+    if (badge) badge.remove();
+  });
+  card.classList.add('border-rose-500', 'bg-rose-50', 'shadow-md');
+  card.classList.remove('border-stone-200');
+  const radio = card.querySelector('input[type=radio]');
+  radio.checked = true;
+  const badge = document.createElement('div');
+  badge.className = 'absolute top-1.5 left-1.5 w-4 h-4 bg-rose-500 rounded-full flex items-center justify-center';
+  badge.innerHTML = '<svg class="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>';
+  card.appendChild(badge);
+});
+</script>
+{% endblock %}

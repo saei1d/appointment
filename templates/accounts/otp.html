@@ -1,1 +1,17 @@
-{% extends 'base.html' %}{% block title %}ورود{% endblock %}{% block content %}<section class="p-4"><div class="rounded-[2rem] bg-white p-6 shadow"><h1 class="brand text-center text-4xl">ورود به نوبتینو</h1>{% if error %}<div class="mt-3 rounded-2xl bg-red-50 p-3 text-red-700">{{ error }}</div>{% endif %}{% if otp_sent %}<div class="mt-3 rounded-2xl bg-green-50 p-3 text-green-700">کد تایید ارسال شد. برای تست در کنسول چاپ می‌شود.</div>{% endif %}<form method="post" class="mt-5 space-y-4">{% csrf_token %}<input type="hidden" name="next" value="{{ next }}">{% if not otp_sent %}<input type="tel" name="phone" value="{{ phone|default:'' }}" class="w-full rounded-2xl border p-4" placeholder="شماره موبایل" required><button class="w-full rounded-2xl bg-pink-500 py-4 text-white">دریافت کد</button>{% else %}<input type="hidden" name="phone" value="{{ phone }}"><input type="text" name="code" maxlength="5" class="w-full rounded-2xl border p-4 text-center text-2xl tracking-widest" placeholder="کد تایید" required><input name="fullname" class="w-full rounded-2xl border p-4" placeholder="نام و نام خانوادگی (اختیاری)"><input name="city" class="w-full rounded-2xl border p-4" placeholder="شهر شما برای نمایش خدمات"><button class="w-full rounded-2xl bg-pink-500 py-4 text-white">تأیید و ورود</button>{% endif %}</form></div></section>{% endblock %}
+{% extends 'base.html' %}{% block title %}ورود{% endblock %}{% block content %}<section class="p-4">
+    <div class="rounded-[2rem] bg-white p-6 shadow">
+        <h1 class="brand text-center text-4xl">ورود به نوبتینو</h1>{% if error %}<div
+            class="mt-3 rounded-2xl bg-red-50 p-3 text-red-700">{{ error }}</div>{% endif %}{% if otp_sent %}<div
+            class="mt-3 rounded-2xl bg-green-50 p-3 text-green-700">کد تایید ارسال شد. برای تست در کنسول چاپ می‌شود.
+        </div>{% endif %}<form method="post" class="mt-5 space-y-4">{% csrf_token %}<input type="hidden" name="next"
+                value="{{ next }}">{% if not otp_sent %}<input type="tel" name="phone" value="{{ phone|default:'' }}"
+                class="w-full rounded-2xl border p-4" placeholder="شماره موبایل" required><button
+                class="w-full rounded-2xl bg-[#FDCCC5] py-4 text-white">دریافت کد</button>{% else %}<input type="hidden"
+                name="phone" value="{{ phone }}"><input type="text" name="code" maxlength="5"
+                class="w-full rounded-2xl border p-4 text-center text-2xl tracking-widest" placeholder="کد تایید"
+                required>{% if not has_fullname %}<input name="fullname" class="w-full rounded-2xl border p-4"
+                placeholder="نام و نام خانوادگی (اختیاری)">{% endif %}{% if not has_city %}<input name="city" class="w-full rounded-2xl border p-4"
+                placeholder="شهر شما برای نمایش خدمات">{% endif %}<button
+                class="w-full rounded-2xl bg-[#FDCCC5] py-4 text-white">تأیید و ورود</button>{% endif %}</form>
+    </div>
+</section>{% endblock %}{% block footer %}{% endblock %}

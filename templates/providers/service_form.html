@@ -1,1 +1,37 @@
-{% extends 'base.html' %}{% block content %}<div class="max-w-2xl mx-auto px-4 py-10"><h1 class="text-3xl font-black mb-6">{% if service %}ویرایش خدمت{% else %}افزودن خدمت{% endif %}</h1><form method="post" class="bg-white rounded-3xl p-6 shadow grid gap-4">{% csrf_token %}<label>انتخاب خدمت مصوب ادمین<select name="template" class="mt-2 w-full border rounded-2xl p-3" required>{% for template in templates %}<option value="{{ template.id }}" {% if service.template_id == template.id %}selected{% endif %}>{{ template.category.name }} / {{ template.name }}</option>{% endfor %}</select></label><textarea name="description" class="border rounded-2xl p-3" placeholder="توضیح اختصاصی">{{ service.description|default:'' }}</textarea><input type="number" name="price" value="{{ service.price|default:'' }}" class="border rounded-2xl p-3" placeholder="قیمت" min="0" required><input type="number" name="duration" value="{{ service.duration|default:'' }}" class="border rounded-2xl p-3" placeholder="مدت زمان" min="1" required><input type="number" name="deposit_amount" value="{{ service.deposit_amount|default:0 }}" class="border rounded-2xl p-3" placeholder="بیعانه" min="0"><label class="flex gap-2"><input type="checkbox" name="is_active" {% if not service or service.is_active %}checked{% endif %}> فعال</label><button class="bg-pink-600 text-white rounded-2xl py-3">ذخیره</button></form></div>{% endblock %}
+{% extends 'base.html' %}
+
+{% block header %}{% endblock %}
+
+{% block footer %}{% endblock %}
+
+{% block content %}
+<style>
+  :root {
+    --theme: {{ provider.theme_color|default:"#1d1a17" }};
+    --bg: {{ provider.background_color|default:"#f7f7f7" }};
+    --accent: {{ provider.accent_color|default:"#1d1a17" }};
+  }
+</style>
+
+<div class="max-w-2xl mx-auto px-4 py-10 pt-8">
+  <h1 class="text-3xl font-black mb-6" style="color: var(--accent);">{% if service %}ویرایش خدمت{% else %}افزودن خدمت{% endif %}</h1>
+  <form method="post" class="bg-white rounded-3xl p-6 shadow grid gap-4">
+    {% csrf_token %}
+    <label style="color: var(--accent);">انتخاب خدمت مصوب ادمین
+      <select name="template" class="mt-2 w-full border rounded-2xl p-3" required>
+        {% for template in templates %}
+          <option value="{{ template.id }}" {% if service.template_id == template.id %}selected{% endif %}>{{ template.category.name }} / {{ template.name }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <textarea name="description" class="border rounded-2xl p-3" placeholder="توضیح اختصاصی">{{ service.description|default:'' }}</textarea>
+    <input type="number" name="price" value="{{ service.price|default:'' }}" class="border rounded-2xl p-3" placeholder="قیمت" min="0" required>
+    <input type="number" name="duration" value="{{ service.duration|default:'' }}" class="border rounded-2xl p-3" placeholder="مدت زمان" min="1" required>
+    <input type="number" name="deposit_amount" value="{{ service.deposit_amount|default:0 }}" class="border rounded-2xl p-3" placeholder="بیعانه" min="0">
+    <label class="flex gap-2" style="color: var(--accent);">
+      <input type="checkbox" name="is_active" {% if not service or service.is_active %}checked{% endif %}> فعال
+    </label>
+    <button class="text-white rounded-2xl py-3" style="background-color: var(--theme);">ذخیره</button>
+  </form>
+</div>
+{% endblock %}
