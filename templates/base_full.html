@@ -1,3 +1,4 @@
+<!-- base_full.html -->
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
 
@@ -5,12 +6,16 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{% block title %}نوبتینو{% endblock %}</title>
+
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+  {% load static %}
+
+  {% block extra_head %}{% endblock %}
   <style>
     @font-face {
       font-family: 'Lalezar';
-      src: url('/media/fonts/Lalezar-Font/TTF/Lalezar-Regular.ttf') format('woff2'),
+      src: url('/static/fonts/web/lalezar/Digi-Lalezar-Plus.ttf') format('woff2'),
         url('/media/fonts/Lalezar.ttf') format('truetype');
       font-display: swap;
     }
@@ -28,66 +33,40 @@
       font-family: 'Lalezar', 'Razan', sans-serif;
     }
 
-    .snap-x {
-      scroll-snap-type: x mandatory;
-    }
-
-    .snap-card {
-      scroll-snap-align: start;
-    }
-
-    /* رنگ‌های سفارشی - Fresha Style */
+    /* رنگ‌های سفارشی */
     .bg-primary {
-      background-color: #000000;
+      background-color: #FDCCC5;
     }
 
     .bg-secondary {
-      background-color: #00A651;
+      background-color: #FB9D90;
     }
 
     .text-primary {
-      color: #000000;
+      color: #FDCCC5;
     }
 
     .text-secondary {
-      color: #00A651;
+      color: #FB9D90;
     }
 
-    .bg-gray-light {
-      background-color: #F5F5F5;
-    }
-
-    .text-gray-dark {
-      color: #1A1A1A;
-    }
-
-    .text-gray-medium {
-      color: #666666;
+    .hover\:bg-primary:hover {
+      background-color: #FDCCC5;
     }
 
     .hover\:bg-secondary:hover {
-      background-color: #008C45;
-    }
-
-    /* اسکرول مخفی */
-    .scrollbar-hide::-webkit-scrollbar {
-      height: 0;
-      width: 0;
-    }
-
-    .scrollbar-hide {
-      -ms-overflow-style: none;
-      scrollbar-width: none;
+      background-color: #FB9D90;
     }
   </style>
 </head>
 
 <body>
-  <div class="mx-auto flex min-h-screen max-w-[430px] flex-col bg-[#fafafa] shadow-2xl">
+  <!-- حذف max-w-[430px] و shadow-2xl -->
+  <div class="flex min-h-screen flex-col bg-[#fafafa]">
     {% block header %}
     <!-- نوار ناوبری -->
     <nav class="sticky top-0 z-40 border-b border-[#FDCCC5]/20 bg-white/95 px-4 py-3 backdrop-blur-md shadow-sm">
-      <div class="flex items-center justify-between">
+      <div class="max-w-7xl mx-auto flex items-center justify-between">
         <a class="brand text-3xl text-[#FB9D90]" href="{% url 'home' %}">نوبتینو</a>
         <div class="flex items-center gap-2 text-xs">
           {% if user.is_authenticated %}
@@ -151,7 +130,7 @@
     <!-- پیام‌ها -->
     {% block base_messages %}
     {% if messages %}
-    <div class="space-y-2 p-4">
+    <div class="max-w-7xl mx-auto w-full px-4 space-y-2 pt-4">
       {% for message in messages %}
       <div class="rounded-2xl border border-[#FDCCC5]/30 bg-white p-3 text-sm shadow-sm">
         {{ message }}
@@ -162,28 +141,30 @@
     {% endblock %}
 
     <!-- محتوای اصلی -->
-    <main class="flex-1 pb-8">{% block content %}{% endblock %}</main>
+    <main class="flex-1">{% block content %}{% endblock %}</main>
 
     <!-- فوتر -->
     {% block footer %}
-    <footer class="rounded-[2rem] bg-gradient-to-br from-[#FB9D90] to-[#FDCCC5] p-6 shadow-lg">
-      <b class="brand text-3xl text-white">نوبتینو</b>
-      <p class="mt-2 text-sm text-white/90">رزرو سریع خدمات زیبایی در شهر شما.</p>
-      <div class="mt-5 grid grid-cols-2 gap-3 text-sm">
-        <a href="{% url 'onboarding_welcome' %}"
-          class="text-white/90 hover:text-white transition-colors bg-white/10 px-3 py-1.5 rounded-full text-center">شروع
-          سریع</a>
-        <a href="{% url 'provider_register' %}"
-          class="text-white/90 hover:text-white transition-colors bg-white/10 px-3 py-1.5 rounded-full text-center">ثبت
-          متخصص</a>
-        <a href="{% url 'customer_bookings' %}"
-          class="text-white/90 hover:text-white transition-colors bg-white/10 px-3 py-1.5 rounded-full text-center">رزروهای
-          من</a>
-        <a href="/blog/"
-          class="text-white/90 hover:text-white transition-colors bg-white/10 px-3 py-1.5 rounded-full text-center">بلاگ</a>
-      </div>
-      <div class="mt-4 pt-4 border-t border-white/20 text-center text-xs text-white/70">
-        © ۱۴۰۴ نوبتینو - تمامی حقوق محفوظ است
+    <footer class="bg-gradient-to-br from-[#FB9D90] to-[#FDCCC5] p-6 shadow-lg mt-auto">
+      <div class="max-w-7xl mx-auto">
+        <b class="brand text-3xl text-white">نوبتینو</b>
+        <p class="mt-2 text-sm text-white/90">رزرو سریع خدمات زیبایی در شهر شما.</p>
+        <div class="mt-5 grid grid-cols-2 md:grid-cols-4 gap-3 text-sm max-w-md">
+          <a href="{% url 'onboarding_welcome' %}"
+            class="text-white/90 hover:text-white transition-colors bg-white/10 px-3 py-1.5 rounded-full text-center">شروع
+            سریع</a>
+          <a href="{% url 'provider_register' %}"
+            class="text-white/90 hover:text-white transition-colors bg-white/10 px-3 py-1.5 rounded-full text-center">ثبت
+            متخصص</a>
+          <a href="{% url 'customer_bookings' %}"
+            class="text-white/90 hover:text-white transition-colors bg-white/10 px-3 py-1.5 rounded-full text-center">رزروهای
+            من</a>
+          <a href="/blog/"
+            class="text-white/90 hover:text-white transition-colors bg-white/10 px-3 py-1.5 rounded-full text-center">بلاگ</a>
+        </div>
+        <div class="mt-4 pt-4 border-t border-white/20 text-center text-xs text-white/70">
+          © ۱۴۰۴ نوبتینو - تمامی حقوق محفوظ است
+        </div>
       </div>
     </footer>
     {% endblock %}

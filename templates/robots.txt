@@ -1,0 +1,15 @@
+User-agent: *
+Allow: /blog/
+Disallow: /admin/
+Disallow: /accounts/
+Disallow: /bookings/
+Disallow: /provider/
+Disallow: /cms/
+Disallow: /documents/
+Disallow: /review/
+Disallow: /media/
+Disallow: /static/
+Disallow: /blog/admin-blog/
+Disallow: /blog/api/
+
+Sitemap: {{ request.scheme }}://{{ request.get_host }}/sitemap.xml

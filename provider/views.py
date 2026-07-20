@@ -15,7 +15,7 @@ from reservations.services.booking import create_appointment
 from provider.models import Provider, Service, ServiceCategory, ServiceTemplate, GalleryItem
 from subscription.models import Plan, Subscription
 from subscription.services.features import active_subscription
-from blog.models import Blog
+from blog.models import BlogPage
 
 
 def _can_accept_bookings(provider):
@@ -49,7 +49,7 @@ def home(request):
     if request.user.is_authenticated:
         upcoming = request.user.appointments.select_related('provider__user', 'service').filter(date__gte=timezone.localdate(), status__in=[Appointment.Status.PENDING, Appointment.Status.CONFIRMED]).order_by('date', 'start_time').first()
     city_services = Service.objects.filter(is_active=True, provider__city=user_city).select_related('provider', 'template__category').distinct()[:8] if user_city else []
-    latest_posts = Blog.objects.filter(is_published=True).order_by('-published_at', '-created_at')[:3]
+    latest_posts = BlogPage.objects.filter(live=True).order_by('-first_published_at')[:3]
     return render(request, 'providers/home.html', {'providers': providers[:6], 'featured_providers': providers.order_by('-rating')[:5], 'categories': categories, 'templates': templates, 'popular_services': popular_services, 'city_services': city_services, 'latest_posts': latest_posts, 'q': q, 'upcoming': upcoming, 'user_city': user_city})
 
 

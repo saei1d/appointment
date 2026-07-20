@@ -12,25 +12,25 @@ AUTH_USER_MODEL = 'accounts.User'
 INSTALLED_APPS = [
     'django.contrib.admin', 'django.contrib.auth', 'django.contrib.contenttypes',
     'django.contrib.sessions', 'django.contrib.messages', 'django.contrib.staticfiles',
-    'ckeditor',
-    'ckeditor_uploader',
+    'django.contrib.sitemaps',
+    'django.contrib.sites',
     'accounts', 'provider', 'subscription', 'reservations',
     'payment', 'notification', 'review', 'blog', 'support',
+    'taggit',
+    # Wagtail
+    "wagtail.contrib.forms",
+    "wagtail.contrib.redirects",
+    "wagtail.embeds",
+    "wagtail.sites",
+    "wagtail.users",
+    "wagtail.snippets",
+    "wagtail.documents",
+    "wagtail.images",
+    "wagtail.search",
+    "wagtail.admin",
+    "wagtail",
 ]
 
-# CKEditor Configuration
-CKEDITOR_CONFIGS = {
-    'default': {
-        'toolbar': 'full',
-        'height': 300,
-        'width': '100%',
-        'extraPlugins': ','.join([
-            'uploadimage',
-        ]),
-    },
-}
-
-CKEDITOR_UPLOAD_PATH = 'ckeditor_uploads/'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -40,6 +40,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    "wagtail.contrib.redirects.middleware.RedirectMiddleware",
+
 ]
 
 ROOT_URLCONF = 'appointment.urls'
@@ -56,21 +58,21 @@ TEMPLATES = [{
 }]
 WSGI_APPLICATION = 'appointment.wsgi.application'
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
-}
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
+#     }
+# }
 
-# DATABASES = {'default': {
-#     'ENGINE': 'django.db.backends.postgresql',
-#     'NAME': os.getenv('POSTGRES_DB', 'appointment'),
-#     'USER': os.getenv('POSTGRES_USER', 'appointment'),
-#     'PASSWORD': os.getenv('POSTGRES_PASSWORD', 'appointment'),
-#     'HOST': os.getenv('POSTGRES_HOST', 'localhost'),
-#     'PORT': os.getenv('POSTGRES_PORT', '5432'),
-# }}
+DATABASES = {'default': {
+    'ENGINE': 'django.db.backends.postgresql',
+    'NAME': os.getenv('POSTGRES_DB', 'appointment'),
+    'USER': os.getenv('POSTGRES_USER', 'appointment'),
+    'PASSWORD': os.getenv('POSTGRES_PASSWORD', 'appointment'),
+    'HOST': os.getenv('POSTGRES_HOST', 'localhost'),
+    'PORT': os.getenv('POSTGRES_PORT', '5432'),
+}}
 
 CACHES = {'default': {'BACKEND': 'django.core.cache.backends.locmem.LocMemCache', 'LOCATION': 'appointment-cache'}}
 
@@ -80,13 +82,14 @@ AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
     {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
-LANGUAGE_CODE = 'fa-ir'
+LANGUAGE_CODE = 'en-us'
 TIME_ZONE = os.getenv('DJANGO_TIME_ZONE', 'UTC')
 USE_I18N = True
 USE_TZ = True
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
-MEDIA_URL = 'media/'
+STATICFILES_DIRS = [BASE_DIR / 'static']
+MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 LOGIN_URL = 'otp_auth'
@@ -101,3 +104,11 @@ SECURE_HSTS_SECONDS = int(os.getenv('DJANGO_HSTS_SECONDS', '0'))
 
 # Staff admins can manage editorial/support areas; superusers retain complete access.
 ADMIN_STAFF_ALLOWED_APPS = {'blog', 'support'}
+
+# Wagtail settings
+WAGTAIL_SITE_NAME = 'نوبتینو'
+WAGTAILADMIN_BASE_URL = 'http://127.0.0.1:8000/cms/'
+WAGTAIL_ENABLE_UPDATE_CHECK = False
+
+# Sitemap settings
+SITE_ID = 1

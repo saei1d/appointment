@@ -58,6 +58,11 @@ class User(AbstractBaseUser, PermissionsMixin):
     def is_admin_role(self):
         return self.role == self.Role.ADMIN or self.is_superuser
 
+    def get_full_name(self):
+        if self.fullname and self.fullname.strip() and self.fullname != 'Super Admin':
+            return self.fullname
+        return 'unknown'
+
     def __str__(self):
         return self.fullname or self.phone
 

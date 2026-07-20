@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}مجله نوبتینو{% endblock %}</title>
+  <meta name="description" content="{% block meta_description %}مجله تخصصی زیبایی و خدمات نوبتینو{% endblock %}">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  {% load static %}
+  {% block extra_head %}{% endblock %}
+  <style>
+    @font-face {
+      font-family: 'Lalezar';
+      src: url('/static/fonts/web/lalezar/Digi-Lalezar-Plus.ttf') format('woff2'),
+        url('/media/fonts/Lalezar.ttf') format('truetype');
+      font-display: swap;
+    }
+    * { font-family: 'Razan', ui-sans-serif, system-ui, sans-serif; }
+    body { background: #fafafa; color: #1a1a1a; }
+    .brand { font-family: 'Lalezar', 'Razan', sans-serif; }
+    .bg-primary { background-color: #FDCCC5; }
+    .bg-secondary { background-color: #FB9D90; }
+    .text-primary { color: #FDCCC5; }
+    .text-secondary { color: #FB9D90; }
+    .hover\:bg-primary:hover { background-color: #FDCCC5; }
+    .hover\:bg-secondary:hover { background-color: #FB9D90; }
+
+    .prose { line-height: 1.9; }
+    .prose h1 { font-size: 2rem; font-weight: 800; margin: 1.5rem 0 1rem; color: #1f2937; }
+    .prose h2 { font-size: 1.6rem; font-weight: 700; margin: 1.4rem 0 0.8rem; color: #1f2937; border-right: 4px solid #FB9D90; padding-right: 12px; }
+    .prose h3 { font-size: 1.3rem; font-weight: 700; margin: 1.2rem 0 0.6rem; color: #374151; }
+    .prose p { margin: 1rem 0; font-size: 1.1rem; color: #374151; }
+    .prose img { border-radius: 12px; margin: 1.5rem 0; }
+    .prose figure { margin: 1.5rem 0; }
+    .prose figcaption { text-align: center; color: #6b7280; font-size: 0.9rem; margin-top: 8px; }
+    .prose blockquote { border-right: 4px solid #FB9D90; background: linear-gradient(135deg, #fdf2f8, #fff1f2); padding: 1.2rem 1.5rem; border-radius: 12px; margin: 1.5rem 0; font-style: italic; color: #1f2937; }
+    .prose pre { background: #1e293b; color: #e2e8f0; padding: 1.2rem; border-radius: 12px; overflow-x: auto; margin: 1.5rem 0; direction: ltr; text-align: left; font-size: 0.9rem; }
+    .prose code { background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-size: 0.9em; direction: ltr; }
+    .prose pre code { background: none; padding: 0; }
+    .prose ul { list-style: disc; padding-right: 1.5rem; margin: 1rem 0; }
+    .prose ol { list-style: decimal; padding-right: 1.5rem; margin: 1rem 0; }
+    .prose li { margin: 0.4rem 0; color: #374151; }
+    .prose table { width: 100%; border-collapse: collapse; margin: 1.5rem 0; border-radius: 12px; overflow: hidden; }
+    .prose th { background: #fdf2f8; color: #be185d; font-weight: 700; padding: 12px 16px; border: 1px solid #e5e7eb; text-align: right; }
+    .prose td { padding: 12px 16px; border: 1px solid #e5e7eb; text-align: right; }
+    .prose tr:hover { background: #faf5ff; }
+    .prose hr { border: none; border-top: 2px solid #e5e7eb; margin: 2rem 0; }
+    .prose .checklist-item { display: flex; align-items: center; gap: 8px; margin: 6px 0; }
+    .prose .checklist-item input[type="checkbox"] { accent-color: #FB9D90; }
+    .prose .warning-box { background: #fffbeb; border-right: 4px solid #f59e0b; padding: 1rem 1.2rem; border-radius: 10px; margin: 1.5rem 0; }
+    .prose .warning-box .warning-title { font-weight: 700; color: #92400e; margin-bottom: 4px; }
+    .prose mark { background: #fef08a; padding: 1px 4px; border-radius: 3px; }
+
+    .ad-container { position: relative; overflow: hidden; border-radius: 12px; }
+    .ad-container .ad-badge { position: absolute; top: 8px; left: 8px; background: rgba(0,0,0,0.5); color: white; font-size: 10px; padding: 2px 8px; border-radius: 10px; z-index: 10; }
+    .ad-container img { width: 100%; height: auto; display: block; }
+
+    .sticky-ad { position: sticky; top: 80px; z-index: 30; }
+
+    @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    .animate-fade-in { animation: fadeInUp 0.4s ease; }
+
+    @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+    .animate-slide-up { animation: slideUp 0.3s ease; }
+  </style>
+</head>
+<body class="bg-[#fafafa]">
+  <div class="flex min-h-screen flex-col">
+
+    {% block ad_header_top %}{% endblock %}
+
+    {% block header %}
+    <nav class="sticky top-0 z-40 border-b border-[#FDCCC5]/20 bg-white/95 backdrop-blur-md shadow-sm">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex items-center justify-between h-16">
+          <a class="brand text-3xl text-[#FB9D90]" href="{% url 'blog:home' %}">زیباک</a>
+          <div class="hidden md:flex items-center gap-6 text-sm">
+            <a href="{% url 'blog:home' %}" class="text-gray-600 hover:text-[#FB9D90] transition-colors">مجله</a>
+            <a href="{% url 'blog:search' %}" class="text-gray-600 hover:text-[#FB9D90] transition-colors">جستجو</a>
+          </div>
+          <div class="flex items-center gap-2 text-xs">
+            {% if user.is_authenticated %}
+            <!-- Dashboard button commented out for now -->
+            <!-- <a class="rounded-full bg-[#FB9D90] px-4 py-2 text-white hover:bg-[#FDCCC5] transition-colors"
+              href="{% if user.is_provider_role %}{% url 'provider_dashboard' %}{% else %}{% url 'customer_dashboard' %}{% endif %}">
+              داشبورد
+            </a> -->
+            {% else %}
+            <!-- <a class="rounded-full bg-[#FB9D90] px-4 py-2 text-white hover:bg-[#FDCCC5] transition-colors"
+              href="{% url 'otp_auth' %}">ورود</a> -->
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </nav>
+    {% endblock %}
+
+    {% block ad_header_bottom %}{% endblock %}
+
+    {% if messages %}
+    <div class="max-w-7xl mx-auto w-full px-4 space-y-2 pt-4">
+      {% for message in messages %}
+      <div class="rounded-2xl border border-[#FDCCC5]/30 bg-white p-3 text-sm shadow-sm">
+        {{ message }}
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <main class="flex-1">
+      {% block content %}{% endblock %}
+    </main>
+
+    {% block ad_footer_mobile %}{% endblock %}
+
+    {% block footer %}
+    <footer class="bg-gradient-to-br from-[#FB9D90] to-[#FDCCC5] mt-12">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div>
+            <b class="brand text-3xl text-white">زیباک</b>
+            <p class="mt-2 text-sm text-white/80">مجله تخصصی زیبایی و خدمات</p>
+          </div>
+          <div>
+            <h4 class="font-bold text-white mb-4">مجله</h4>
+            <div class="space-y-2 text-sm">
+              <a href="{% url 'blog:home' %}" class="block text-white/80 hover:text-white transition-colors">صفحه اصلی مجله</a>
+              <a href="{% url 'blog:search' %}" class="block text-white/80 hover:text-white transition-colors">جستجوی مقالات</a>
+            </div>
+          </div>
+        </div>
+        <div class="mt-8 pt-6 border-t border-white/20 text-center text-xs text-white/60">
+          © ۱۴۰۴ زیباک - تمامی حقوق محفوظ است
+        </div>
+      </div>
+    </footer>
+    {% endblock %}
+  </div>
+
+  {% block ad_popup %}{% endblock %}
+
+  <style>
+    .ad-container {
+      position: relative;
+      width: 100%;
+      margin: 0 0 1rem 0;
+      overflow: hidden;
+      min-height: 100px;
+      background: #f0f0f0;
+    }
+    .ad-container img {
+      width: 100%;
+      height: auto;
+      display: block;
+      min-height: 100px;
+    }
+    .ad-close {
+      position: absolute;
+      top: 8px;
+      left: 8px;
+      background: rgba(0, 0, 0, 0.5);
+      color: white;
+      border: none;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 18px;
+      line-height: 1;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s;
+    }
+    .ad-close:hover {
+      background: rgba(0, 0, 0, 0.8);
+    }
+  </style>
+
+  <script>
+    function toggleMenu() {
+      const menu = document.getElementById('userMenu');
+      if (menu) menu.classList.toggle('hidden');
+    }
+    document.addEventListener('click', function (event) {
+      const menu = document.getElementById('userMenu');
+      const button = event.target.closest('button');
+      if (menu && !menu.contains(event.target) && (!button || !button.onclick)) {
+        menu.classList.add('hidden');
+      }
+    });
+  </script>
+</body>
+</html>

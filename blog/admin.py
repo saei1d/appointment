@@ -1,17 +1,64 @@
+# blog/admin.py
 from django.contrib import admin
-from .models import Blog
+from .models import BlogPage, BlogCategory, BlogPageTag, AdPlacement, Ad
 
 
-@admin.register(Blog)
+@admin.register(BlogPage)
 class BlogAdmin(admin.ModelAdmin):
-    list_display = ('id', 'title', 'author', 'is_published', 'published_at', 'created_at')
-    list_filter = ('is_published', 'author')
-    search_fields = ('title', 'content', 'author__fullname')
-    prepopulated_fields = {'slug': ('title',)}
-    fieldsets = (
-        ('انتشار', {'fields': ('title', 'slug', 'author', 'image', 'is_published', 'published_at')}),
-        ('محتوا', {'fields': ('content',), 'description': 'برای تیتر، لیست، لینک و تصویر از ادیتور مرورگر/کپی از Google Docs استفاده کنید؛ HTML ساده نیز پشتیبانی می‌شود.'}),
-    )
+    list_display = ['id', 'title', 'first_published_at', 'last_published_at']
+    list_filter = ['first_published_at']
+    search_fields = ['title', 'excerpt', 'body']
+    readonly_fields = ['first_published_at', 'last_published_at']
 
-    class Media:
-        js = ('https://cdn.tiny.cloud/1/no-api-key/tinymce/6/tinymce.min.js',)
+
+@admin.register(BlogCategory)
+class CategoryAdmin(admin.ModelAdmin):
+    list_display = ['name', 'slug']
+    prepopulated_fields = {'slug': ('name',)}
+
+
+
+
+
+
+class AdInline(admin.TabularInline):
+    model = Ad
+    extra = 0
+    fields = ['title', 'image_desktop', 'image_mobile', 'link_url', 'start_date', 'end_date', 'priority', 'is_active']
+    readonly_fields = ['impression_count', 'click_count']
+
+
+@admin.register(AdPlacement)
+class AdPlacementAdmin(admin.ModelAdmin):
+    list_display = ['name', 'placement_code', 'is_active', 'ads_count']
+    list_filter = ['is_active']
+    search_fields = ['name', 'description']
+    prepopulated_fields = {'slug': ('name',)}
+    inlines = [AdInline]
+
+    def ads_count(self, obj):
+        return obj.ads.count()
+    ads_count.short_description = 'تعداد تبلیغات'
+
+
+@admin.register(Ad)
+class AdAdmin(admin.ModelAdmin):
+    list_display = ['title', 'placement', 'priority', 'is_active', 'impression_count', 'click_count', 'start_date', 'end_date']
+    list_filter = ['placement', 'is_active', 'start_date']
+    search_fields = ['title', 'link_url']
+    readonly_fields = ['impression_count', 'click_count', 'created_at']
+    fieldsets = (
+        ('اطلاعات اصلی', {
+            'fields': ('title', 'placement', 'link_url')
+        }),
+        ('تصاویر', {
+            'fields': ('image_desktop', 'image_mobile')
+        }),
+        ('زمان‌بندی و اولویت', {
+            'fields': ('start_date', 'end_date', 'priority', 'is_active')
+        }),
+        ('آمار', {
+            'fields': ('impression_count', 'click_count', 'created_at'),
+            'classes': ('collapse',)
+        }),
+    )

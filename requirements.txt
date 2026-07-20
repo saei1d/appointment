@@ -1,4 +1,4 @@
-Django
+Django>=6.0
 Pillow
 python-dotenv
-django-ckeditor
+wagtail==7.4
