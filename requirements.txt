@@ -1,4 +1,4 @@
-Django>=4.2,<5.3
+Django==6.0.7
 Pillow
 python-dotenv
 wagtail==7.4

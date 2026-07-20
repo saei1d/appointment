@@ -5,7 +5,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'dev-only-change-me')
 DEBUG = os.getenv('DJANGO_DEBUG', '1') == '1'
-ALLOWED_HOSTS = [h.strip() for h in os.getenv('DJANGO_ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',') if h.strip()]
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', ['localhost,127.0.0.1',])
 
 AUTH_USER_MODEL = 'accounts.User'
 
@@ -106,8 +106,8 @@ SECURE_HSTS_SECONDS = int(os.getenv('DJANGO_HSTS_SECONDS', '0'))
 ADMIN_STAFF_ALLOWED_APPS = {'blog', 'support'}
 
 # Wagtail settings
-WAGTAIL_SITE_NAME = 'نوبتینو'
-WAGTAILADMIN_BASE_URL = 'http://127.0.0.1:8000/cms/'
+WAGTAIL_SITE_NAME = 'زیباک'
+WAGTAILADMIN_BASE_URL =os.getenv('WAGTAILADMIN_BASE_URL', 'http://127.0.0.1:8000/cms/')
 WAGTAIL_ENABLE_UPDATE_CHECK = False
 
 # Sitemap settings
