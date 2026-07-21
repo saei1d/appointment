@@ -1,5 +1,8 @@
 import os
 from pathlib import Path
+from dotenv import load_dotenv
+
+load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -58,21 +61,26 @@ TEMPLATES = [{
 }]
 WSGI_APPLICATION = 'appointment.wsgi.application'
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.sqlite3',
-#         'NAME': BASE_DIR / 'db.sqlite3',
-#     }
-# }
+SERVER_ON = os.getenv('SERVER_ON',False)
 
-DATABASES = {'default': {
-    'ENGINE': 'django.db.backends.postgresql',
-    'NAME': os.getenv('POSTGRES_DB', 'appointment'),
-    'USER': os.getenv('POSTGRES_USER', 'appointment'),
-    'PASSWORD': os.getenv('POSTGRES_PASSWORD', 'appointment'),
-    'HOST': os.getenv('POSTGRES_HOST', 'localhost'),
-    'PORT': os.getenv('POSTGRES_PORT', '5432'),
-}}
+
+if SERVER_ON == True :
+    print("1111111111111111111111111111111111111111111")
+    DATABASES = {'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.getenv('POSTGRES_DB', 'appointment'),
+        'USER': os.getenv('POSTGRES_USER', 'appointment'),
+        'PASSWORD': os.getenv('POSTGRES_PASSWORD', 'appointment'),
+        'HOST': os.getenv('POSTGRES_HOST', 'localhost'),
+        'PORT': os.getenv('POSTGRES_PORT', '5432'),
+    }}
+else:
+    DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
 
 CACHES = {'default': {'BACKEND': 'django.core.cache.backends.locmem.LocMemCache', 'LOCATION': 'appointment-cache'}}
 
