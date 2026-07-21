@@ -75,21 +75,18 @@ if SERVER_ON == True :
         'PORT': os.getenv('POSTGRES_PORT', '5432'),
     }}
 else:
-    DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-        }
-    }
+    DATABASES = {'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.getenv('POSTGRES_DB', 'POSTGRES_DB'),
+        'USER': os.getenv('POSTGRES_USER', 'POSTGRES_USER'),
+        'PASSWORD': os.getenv('POSTGRES_PASSWORD', 'POSTGRES_PASSWORD'),
+        'HOST': os.getenv('POSTGRES_HOST', 'localhost'),
+        'PORT': os.getenv('POSTGRES_PORT', '5432'),
+    }}
 
 CACHES = {'default': {'BACKEND': 'django.core.cache.backends.locmem.LocMemCache', 'LOCATION': 'appointment-cache'}}
 
-AUTH_PASSWORD_VALIDATORS = [
-    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
-    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
-    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
-    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
-]
+AUTH_PASSWORD_VALIDATORS = []
 LANGUAGE_CODE = 'en-us'
 TIME_ZONE = os.getenv('DJANGO_TIME_ZONE', 'UTC')
 USE_I18N = True
@@ -117,6 +114,8 @@ ADMIN_STAFF_ALLOWED_APPS = {'blog', 'support'}
 WAGTAIL_SITE_NAME = 'زیباک'
 WAGTAILADMIN_BASE_URL =os.getenv('WAGTAILADMIN_BASE_URL', 'http://127.0.0.1:8000/cms/')
 WAGTAIL_ENABLE_UPDATE_CHECK = False
+WAGTAIL_ALLOW_UNICODE_SLUGS = True
+WAGTAILUSERS_PASSWORD_REQUIRED = False
 
 # Sitemap settings
 SITE_ID = 1

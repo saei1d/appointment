@@ -43,6 +43,11 @@
           <div id="searchResults" class="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-2xl border border-gray-100 hidden max-h-96 overflow-y-auto z-50"></div>
         </form>
 
+        {% if user.is_staff or user.is_superuser %}
+        <a class="rounded-full bg-gray-800 px-4 py-2 text-white text-sm hover:bg-gray-700 transition-colors"
+          href="/cms/">مدیریت بلاگ</a>
+        {% endif %}
+
         <!-- {% if user.is_authenticated %}
         <a class="rounded-full bg-[#FB9D90] px-4 py-2 text-white text-sm hover:bg-[#FDCCC5] transition-colors"
           href="{% if user.is_provider_role %}{% url 'provider_dashboard' %}{% else %}{% url 'customer_dashboard' %}{% endif %}">
