@@ -5,13 +5,15 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{% block title %}نوبتینو{% endblock %}</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+  {% load static %}
+
+  <link rel="stylesheet" href="{% static 'css/output.css' %}">
   <script src="https://unpkg.com/htmx.org@1.9.10"></script>
   <style>
     @font-face {
       font-family: 'Lalezar';
-      src: url('/media/fonts/Lalezar-Font/TTF/Lalezar-Regular.ttf') format('woff2'),
-        url('/media/fonts/Lalezar.ttf') format('truetype');
+      src: url('/static/fonts/web/lalezar/Digi-Lalezar-Plus.ttf') format('woff2'),
+        url('/static/fonts/web/lalezar/Digi-Lalezar-Plus.ttf') format('truetype');
       font-display: swap;
     }
 
@@ -22,6 +24,92 @@
     body {
       background: #fafafa;
       color: #1a1a1a;
+      position: relative;
+      overflow-x: hidden;
+      min-height: 100vh;
+    }
+
+    /* Animated circular bubbles background - Fresha style */
+    .bubble-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      overflow: hidden;
+      z-index: -1;
+      pointer-events: none;
+    }
+
+    .bubble {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(60px);
+      opacity: 0.6;
+    }
+
+    .bubble-purple {
+      width: 400px;
+      height: 400px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      animation: rotatePurple 20s linear infinite;
+    }
+
+    .bubble-red {
+      width: 350px;
+      height: 350px;
+      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+      animation: rotateRed 25s linear infinite reverse;
+    }
+
+    @keyframes rotatePurple {
+      0% {
+        transform: translate(-50%, -50%) rotate(0deg) translateX(150px) rotate(0deg);
+        top: 30%;
+        left: 30%;
+      }
+      50% {
+        transform: translate(-50%, -50%) rotate(180deg) translateX(150px) rotate(-180deg);
+        top: 70%;
+        left: 70%;
+      }
+      100% {
+        transform: translate(-50%, -50%) rotate(360deg) translateX(150px) rotate(-360deg);
+        top: 30%;
+        left: 30%;
+      }
+    }
+
+    @keyframes rotateRed {
+      0% {
+        transform: translate(-50%, -50%) rotate(0deg) translateX(120px) rotate(0deg);
+        top: 60%;
+        left: 60%;
+      }
+      50% {
+        transform: translate(-50%, -50%) rotate(180deg) translateX(120px) rotate(-180deg);
+        top: 40%;
+        left: 40%;
+      }
+      100% {
+        transform: translate(-50%, -50%) rotate(360deg) translateX(120px) rotate(-360deg);
+        top: 60%;
+        left: 60%;
+      }
+    }
+
+    /* Desktop: center mobile view */
+    @media (min-width: 431px) {
+      body {
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        padding: 20px 0;
+      }
+      
+      body::before {
+        border-radius: 0;
+      }
     }
 
     .brand {
@@ -69,6 +157,15 @@
       background-color: #008C45;
     }
 
+    /* Glassmorphism */
+    .glassmorphism {
+      background: rgba(255, 255, 255, 40%);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.5);
+      box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+    }
+
     /* اسکرول مخفی */
     .scrollbar-hide::-webkit-scrollbar {
       height: 0;
@@ -79,70 +176,139 @@
       -ms-overflow-style: none;
       scrollbar-width: none;
     }
+
+    /* Modal styles */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 100;
+      display: none;
+    }
+
+    .modal-overlay.active {
+      display: flex;
+    }
+
+    .modal-content {
+      background: white;
+      border-radius: 20px 20px 0 0;
+      max-height: 90vh;
+      overflow-y: auto;
+      animation: slideUp 0.3s ease-out;
+    }
+
+    @keyframes slideUp {
+      from {
+        transform: translateY(100%);
+      }
+      to {
+        transform: translateY(0);
+      }
+    }
+
+    /* Full screen menu */
+    .fullscreen-menu {
+      position: fixed;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100%;
+      max-width: 430px;
+      height: 100vh;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      z-index: 200;
+      display: none;
+      flex-direction: column;
+      padding: 20px;
+      animation: fadeIn 0.3s ease-out;
+    }
+
+    .fullscreen-menu.active {
+      display: flex;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+      }
+      to {
+        opacity: 1;
+      }
+    }
+
+    .menu-section {
+      margin-bottom: 30px;
+    }
+
+    .menu-section-title {
+      font-size: 14px;
+      font-weight: bold;
+      color: #666;
+      margin-bottom: 15px;
+    }
+
+    .menu-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 15px 0;
+      border-bottom: 1px solid #eee;
+      text-decoration: none;
+      color: #1a1a1a;
+      font-size: 16px;
+      transition: color 0.2s;
+    }
+
+    .menu-item:hover {
+      color: #FB9D90;
+    }
+
+    .menu-close {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      background: none;
+      border: none;
+      cursor: pointer;
+    }
+
+    /* Navbar scroll effect */
+    .nav-scrolled {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
   </style>
 </head>
 
 <body>
-  <div class="mx-auto flex min-h-screen max-w-[430px] flex-col bg-[#fafafa] shadow-2xl">
+  <!-- Animated bubbles background -->
+  <div class="bubble-container">
+    <div class="bubble bubble-purple"></div>
+    <div class="bubble bubble-red"></div>
+  </div>
+
+  <div class="mx-auto flex min-h-screen max-w-[430px] flex-col glassmorphism shadow-2xl">
     {% block header %}
-    <!-- نوار ناوبری -->
-    <nav class="sticky top-0 z-40 border-b border-[#FDCCC5]/20 bg-white/95 px-4 py-3 backdrop-blur-md shadow-sm">
+    <!-- نوار ناوبری - Transparent -->
+    <nav id="navbar" class="sticky top-0 z-40 px-4 py-3 transition-all duration-300">
       <div class="flex items-center justify-between">
-        <a class="brand text-3xl text-[#FB9D90]" href="{% url 'home' %}">نوبتینو</a>
+        <a class="brand text-2xl text-black" href="{% url 'home' %}">زیباک</a>
         <div class="flex items-center gap-2 text-xs">
-          {% if user.is_authenticated %}
-          <a class="rounded-full bg-[#FB9D90] px-4 py-2 text-white hover:bg-[#FDCCC5] transition-colors"
-            href="{% if user.is_provider_role %}{% url 'provider_dashboard' %}{% else %}{% url 'customer_dashboard' %}{% endif %}">
-            داشبورد
-          </a>
           <!-- منو همبرگری -->
-          <div class="relative">
-            <button onclick="toggleMenu()" class="p-2 rounded-full hover:bg-[#FDCCC5]/20 transition-colors">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-stone-600" fill="none" viewBox="0 0 24 24"
-                stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-              </svg>
-            </button>
-            <!-- منو کشویی -->
-            <div id="userMenu"
-              class="hidden absolute left-0 top-12 w-48 rounded-2xl bg-white shadow-xl border border-[#FDCCC5]/20 overflow-hidden">
-              <div class="p-3 border-b border-[#FDCCC5]/10">
-                <p class="text-xs text-stone-500 mb-1">سلام</p>
-                <p class="text-sm font-semibold text-stone-700">{{ user.fullname|default:user.phone }}</p>
-              </div>
-              <a href="#"
-                class="w-full px-4 py-3 text-right text-sm text-stone-700 hover:bg-[#FDCCC5]/20 transition-colors flex items-center justify-between border-b border-[#FDCCC5]/10">
-                <span>پشتیبانی</span>
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-[#FB9D90]" fill="none" viewBox="0 0 24 24"
-                  stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                </svg>
-              </a>
-              {% if user.is_staff %}
-              <a href="{% url 'blog:admin_list' %}"
-                class="w-full px-4 py-3 text-right text-sm text-stone-700 hover:bg-[#FDCCC5]/20 transition-colors flex items-center justify-between border-b border-[#FDCCC5]/10">
-                <span>وبلاگ</span>
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-[#FB9D90]" fill="none" viewBox="0 0 24 24"
-                  stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                </svg>
-              </a>
-              {% endif %}
-              <form method="post" action="{% url 'logout' %}">
-                {% csrf_token %}
-                <button
-                  class="w-full px-4 py-3 text-right text-sm text-[#FB9D90] hover:bg-[#FDCCC5]/20 transition-colors">
-                  خروج
-                </button>
-              </form>
-            </div>
-          </div>
-          {% else %}
-          <a class="rounded-full bg-[#FB9D90] px-4 py-2 text-white hover:bg-[#FDCCC5] transition-colors"
-            href="{% url 'otp_auth' %}">ورود</a>
-          {% endif %}
+          <button onclick="toggleMenu()" class="p-2 rounded-full hover:bg-gray-100 transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-black" fill="none" viewBox="0 0 24 24"
+              stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
         </div>
       </div>
     </nav>
@@ -166,41 +332,147 @@
 
     <!-- فوتر -->
     {% block footer %}
-    <footer class="rounded-[2rem] bg-gradient-to-br from-[#FB9D90] to-[#FDCCC5] p-6 shadow-lg">
-      <b class="brand text-3xl text-white">نوبتینو</b>
-      <p class="mt-2 text-sm text-white/90">رزرو سریع خدمات زیبایی در شهر شما.</p>
-      <div class="mt-5 grid grid-cols-2 gap-3 text-sm">
-        <a href="{% url 'onboarding_welcome' %}"
-          class="text-white/90 hover:text-white transition-colors bg-white/10 px-3 py-1.5 rounded-full text-center">شروع
-          سریع</a>
-        <a href="{% url 'provider_register' %}"
-          class="text-white/90 hover:text-white transition-colors bg-white/10 px-3 py-1.5 rounded-full text-center">ثبت
-          متخصص</a>
-        <a href="{% url 'customer_bookings' %}"
-          class="text-white/90 hover:text-white transition-colors bg-white/10 px-3 py-1.5 rounded-full text-center">رزروهای
-          من</a>
-        <a href="/blog/"
-          class="text-white/90 hover:text-white transition-colors bg-white/10 px-3 py-1.5 rounded-full text-center">بلاگ</a>
-      </div>
-      <div class="mt-4 pt-4 border-t border-white/20 text-center text-xs text-white/70">
-        © ۱۴۰۴ نوبتینو - تمامی حقوق محفوظ است
-      </div>
+    <footer class="px-4 py-8 bg-gray-50 mt-8">
+        <div class="mb-6">
+            <h3 class="text-sm font-bold text-gray-dark mb-3">About Fresha</h3>
+            <ul class="space-y-2">
+                <li><a href="#" class="text-xs text-gray-medium hover:text-gray-dark">Careers</a></li>
+                <li><a href="#" class="text-xs text-gray-medium hover:text-gray-dark">Help and support</a></li>
+                <li><a href="#" class="text-xs text-gray-medium hover:text-gray-dark">Blog</a></li>
+                <li><a href="#" class="text-xs text-gray-medium hover:text-gray-dark">Sitemap</a></li>
+            </ul>
+        </div>
+
+        <div class="mb-6">
+            <h3 class="text-sm font-bold text-gray-dark mb-3">For business</h3>
+            <ul class="space-y-2">
+                <li><a href="#" class="text-xs text-gray-medium hover:text-gray-dark">For partners</a></li>
+                <li><a href="#" class="text-xs text-gray-medium hover:text-gray-dark">Pricing</a></li>
+                <li><a href="#" class="text-xs text-gray-medium hover:text-gray-dark">Payments</a></li>
+                <li><a href="#" class="text-xs text-gray-medium hover:text-gray-dark">Support</a></li>
+                <li><a href="#" class="text-xs text-gray-medium hover:text-gray-dark">Status</a></li>
+            </ul>
+        </div>
+
+        <div class="mb-6">
+            <h3 class="text-sm font-bold text-gray-dark mb-3">Legal</h3>
+            <ul class="space-y-2">
+                <li><a href="#" class="text-xs text-gray-medium hover:text-gray-dark">Privacy Policy</a></li>
+                <li><a href="#" class="text-xs text-gray-medium hover:text-gray-dark">Terms of service</a></li>
+                <li><a href="#" class="text-xs text-gray-medium hover:text-gray-dark">Terms of use</a></li>
+                <li><a href="#" class="text-xs text-gray-medium hover:text-gray-dark">Legal notice</a></li>
+            </ul>
+        </div>
+
+        <div>
+            <h3 class="text-sm font-bold text-gray-dark mb-3">Find us on social</h3>
+            <div class="flex gap-4">
+                <a href="#" class="text-gray-medium hover:text-gray-dark">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                    </svg>
+                </a>
+                <a href="#" class="text-gray-medium hover:text-gray-dark">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+                    </svg>
+                </a>
+                <a href="#" class="text-gray-medium hover:text-gray-dark">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+                    </svg>
+                </a>
+            </div>
+        </div>
     </footer>
     {% endblock %}
   </div>
 
+  <!-- Full Screen Menu -->
+  <div id="fullscreenMenu" class="fullscreen-menu">
+    <button onclick="toggleMenu()" class="menu-close">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+      </svg>
+    </button>
+
+    <div class="menu-section">
+      <div class="menu-section-title">برای مشتریان</div>
+      {% if user.is_authenticated %}
+      <a href="{% url 'customer_dashboard' %}" class="menu-item">
+        <span>داشبورد</span>
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+        </svg>
+      </a>
+      <a href="{% url 'customer_bookings' %}" class="menu-item">
+        <span>رزروهای من</span>
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+        </svg>
+      </a>
+      <form method="post" action="{% url 'logout' %}">
+        {% csrf_token %}
+        <button type="submit" class="menu-item" style="width: 100%; text-align: right; background: none; border: none; cursor: pointer;">
+          <span>خروج</span>
+        </button>
+      </form>
+      {% else %}
+      <a href="{% url 'otp_auth' %}" class="menu-item">
+        <span>ورود یا ثبت نام در زیباک</span>
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+        </svg>
+      </a>
+      {% endif %}
+      <a href="#" class="menu-item">
+        <span>پشتیبانی</span>
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+        </svg>
+      </a>
+    </div>
+
+    <div class="menu-section">
+      <div class="menu-section-title">برای کسب و کارها</div>
+      {% if user.is_authenticated and user.is_provider_role %}
+      <a href="{% url 'provider_dashboard' %}" class="menu-item">
+        <span>داشبورد کسب و کار</span>
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+        </svg>
+      </a>
+      {% else %}
+      <a href="{% url 'provider_register' %}" class="menu-item">
+        <span>ثبت کسب و کار</span>
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+        </svg>
+      </a>
+      {% endif %}
+      <a href="{% url 'onboarding_welcome' %}" class="menu-item">
+        <span>شروع سریع</span>
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+        </svg>
+      </a>
+    </div>
+  </div>
+
   <script>
     function toggleMenu() {
-      const menu = document.getElementById('userMenu');
-      menu.classList.toggle('hidden');
+      const menu = document.getElementById('fullscreenMenu');
+      menu.classList.toggle('active');
+      document.body.style.overflow = menu.classList.contains('active') ? 'hidden' : '';
     }
 
-    // بستن منو با کلیک بیرون
-    document.addEventListener('click', function (event) {
-      const menu = document.getElementById('userMenu');
-      const button = event.target.closest('button');
-      if (menu && !menu.contains(event.target) && (!button || !button.onclick)) {
-        menu.classList.add('hidden');
+    // Navbar scroll effect
+    window.addEventListener('scroll', function() {
+      const navbar = document.getElementById('navbar');
+      if (window.scrollY > 10) {
+        navbar.classList.add('nav-scrolled');
+      } else {
+        navbar.classList.remove('nav-scrolled');
       }
     });
   </script>

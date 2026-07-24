@@ -2,458 +2,694 @@
 {% load static %}
 
 {% block content %}
-<section class="max-w-md mx-auto min-h-screen bg-white text-gray-dark p-4 space-y-6 pb-24" dir="rtl">
+<section class="min-h-screen" dir="rtl">
 
     <!-- Hero Section - Fresha Style -->
-    <div class="pt-4 pb-8">
+    <div class="pt-16 pb-6 px-4">
         <h1 class="text-2xl font-bold text-gray-dark mb-2">رزرو خدمات زیبایی محلی</h1>
-        <p class="text-sm text-gray-medium mb-6">بهترین سالن‌ها، آرایشگاه‌ها و متخصصان زیبایی نزدیک شما</p>
+        <p class="text-sm text-gray-medium mb-6">بهترین سالن‌ها، آرایشگاه‌ها، مداسپاها، استودیوهای سلامتی و متخصصان زیبایی که توسط میلیون‌ها نفر در سراسر جهان مورد اعتماد هستند را کشف کنید</p>
         
-        <!-- Large Search Bar -->
-        <form class="relative">
-            <input name="q" value="{{ q }}"
-                class="w-full rounded-xl border border-gray-200 bg-gray-light p-4 pr-12 pl-4 text-sm focus:ring-2 focus:ring-secondary focus:border-transparent focus:outline-none transition-all duration-300"
-                placeholder="جستجوی خدمت، شهر یا متخصص...">
-            <div class="absolute pr-4 right-0 top-1/2 -translate-y-1/2 text-gray-medium">
+        <!-- Search Box with 3 Options -->
+        <div class="glassmorphism rounded-2xl shadow-lg p-4 space-y-3">
+            <div onclick="openSearchModal('treatments')" class="flex items-center justify-between p-3 rounded-xl bg-gray-light cursor-pointer hover:bg-gray-100 transition-colors">
+                <div class="flex items-center gap-3">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-medium" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                    </svg>
+                    <span class="text-sm font-medium text-gray-dark">همه خدمات</span>
+                </div>
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-medium" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                </svg>
+            </div>
+            
+            <div onclick="openSearchModal('location')" class="flex items-center justify-between p-3 rounded-xl bg-gray-light cursor-pointer hover:bg-gray-100 transition-colors">
+                <div class="flex items-center gap-3">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-medium" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    <span class="text-sm font-medium text-gray-dark">موقعیت فعلی</span>
+                </div>
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-medium" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                </svg>
+            </div>
+            
+            <div onclick="openSearchModal('time')" class="flex items-center justify-between p-3 rounded-xl bg-gray-light cursor-pointer hover:bg-gray-100 transition-colors">
+                <div class="flex items-center gap-3">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-medium" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span class="text-sm font-medium text-gray-dark">هر زمانی</span>
+                </div>
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-medium" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                </svg>
+            </div>
+            
+            <!-- Black Search Button -->
+            <button onclick="openSearchModal('all')" class="w-full bg-black text-white py-3 rounded-xl text-sm font-medium hover:bg-gray-800 transition-colors flex items-center justify-center gap-2">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
-            </div>
-        </form>
+                جستجو
+            </button>
+        </div>
     </div>
 
-    <!-- City Selector -->
-    {% if user.is_authenticated %}
-    <div class="flex items-center justify-between mb-6">
-        <form id="cityForm" method="post" class="relative">
-            {% csrf_token %}
-            <input type="hidden" name="city" id="selectedCity" value="{{ user_city }}">
-            <button type="button" id="cityDisplay"
-                class="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-full text-sm font-medium text-gray-dark hover:bg-gray-light transition-all duration-300">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-medium" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                </svg>
-                <span>{{ user_city|default:"انتخاب شهر" }}</span>
-            </button>
-
-            <div id="cityDropdown"
-                class="absolute right-0 top-full mt-2 w-40 bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden z-50 hidden transition-all duration-300">
-                <div class="py-2 text-sm">
-                    <div class="px-4 py-2 text-gray-medium hover:bg-gray-light cursor-pointer text-right transition-colors duration-200" data-value="">
-                        انتخاب شهر...
+    <!-- Recommended Section -->
+    <div class="px-4 py-16">
+        <h2 class="text-lg font-bold text-gray-dark mb-4">Recommended</h2>
+        <div class="flex gap-4 overflow-x-auto scrollbar-hide snap-x pb-2">
+            <!-- Salon Card 1 -->
+            <div class="flex-shrink-0 w-[236px] snap-card">
+                <div class="h-[157px] rounded-2xl overflow-hidden mb-3">
+                    <img src="{% static 'images/home-page/testpic.webp' %}" alt="سالن زیبایی رز" class="w-full h-full object-cover">
+                </div>
+                <div>
+                    <div class="flex items-center justify-between mb-1">
+                        <h3 class="font-bold text-gray-dark text-sm">سالن زیبایی رز</h3>
+                        <div class="flex items-center gap-1">
+                            <span class="text-xs text-gray-dark">4.8</span>
+                            <span class="text-yellow-400 text-xs">★</span>
+                        </div>
                     </div>
-                    <div class="px-4 py-2 {% if user_city == 'تهران' %}bg-gray-light text-secondary font-bold{% else %}text-gray-dark hover:bg-gray-light{% endif %} cursor-pointer text-right transition-colors duration-200" data-value="تهران">
-                        تهران
-                    </div>
-                    <div class="px-4 py-2 {% if user_city == 'اصفهان' %}bg-gray-light text-secondary font-bold{% else %}text-gray-dark hover:bg-gray-light{% endif %} cursor-pointer text-right transition-colors duration-200" data-value="اصفهان">
-                        اصفهان
-                    </div>
-                    <div class="px-4 py-2 {% if user_city == 'مشهد' %}bg-gray-light text-secondary font-bold{% else %}text-gray-dark hover:bg-gray-light{% endif %} cursor-pointer text-right transition-colors duration-200" data-value="مشهد">
-                        مشهد
-                    </div>
-                    <div class="px-4 py-2 {% if user_city == 'قم' %}bg-gray-light text-secondary font-bold{% else %}text-gray-dark hover:bg-gray-light{% endif %} cursor-pointer text-right transition-colors duration-200" data-value="قم">
-                        قم
+                    <p class="text-xs text-gray-medium mb-2">تهران، خیابان ولیعصر</p>
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs text-gray-dark">مو و استایل</span>
+                        <span class="text-xs text-gray-medium">•</span>
+                        <span class="text-xs text-gray-medium">۱۲۳ نظر</span>
                     </div>
                 </div>
             </div>
-        </form>
+
+            <!-- Salon Card 2 -->
+            <div class="flex-shrink-0 w-[236px] snap-card">
+                <div class="h-[157px] rounded-2xl overflow-hidden mb-3">
+                    <img src="{% static 'images/home-page/testpic.webp' %}" alt="سالن ناخن لاله" class="w-full h-full object-cover">
+                </div>
+                <div>
+                    <div class="flex items-center justify-between mb-1">
+                        <h3 class="font-bold text-gray-dark text-sm">سالن ناخن لاله</h3>
+                        <div class="flex items-center gap-1">
+                            <span class="text-xs text-gray-dark">4.9</span>
+                            <span class="text-yellow-400 text-xs">★</span>
+                        </div>
+                    </div>
+                    <p class="text-xs text-gray-medium mb-2">تهران، خیابان شریعتی</p>
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs text-gray-dark">ناخن</span>
+                        <span class="text-xs text-gray-medium">•</span>
+                        <span class="text-xs text-gray-medium">۸۹ نظر</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Salon Card 3 -->
+            <div class="flex-shrink-0 w-[236px] snap-card">
+                <div class="h-[157px] rounded-2xl overflow-hidden mb-3">
+                    <img src="{% static 'images/home-page/testpic.webp' %}" alt="اسپا آرامش" class="w-full h-full object-cover">
+                </div>
+                <div>
+                    <div class="flex items-center justify-between mb-1">
+                        <h3 class="font-bold text-gray-dark text-sm">اسپا آرامش</h3>
+                        <div class="flex items-center gap-1">
+                            <span class="text-xs text-gray-dark">4.7</span>
+                            <span class="text-yellow-400 text-xs">★</span>
+                        </div>
+                    </div>
+                    <p class="text-xs text-gray-medium mb-2">تهران، خیابان آزادی</p>
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs text-gray-dark">ماساژ</span>
+                        <span class="text-xs text-gray-medium">•</span>
+                        <span class="text-xs text-gray-medium">۲۵۶ نظر</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Salon Card 4 -->
+            <div class="flex-shrink-0 w-[236px] snap-card">
+                <div class="h-[157px] rounded-2xl overflow-hidden mb-3">
+                    <img src="{% static 'images/home-page/testpic.webp' %}" alt="مرکز سلامتی نیایش" class="w-full h-full object-cover">
+                </div>
+                <div>
+                    <div class="flex items-center justify-between mb-1">
+                        <h3 class="font-bold text-gray-dark text-sm">مرکز سلامتی نیایش</h3>
+                        <div class="flex items-center gap-1">
+                            <span class="text-xs text-gray-dark">4.6</span>
+                            <span class="text-yellow-400 text-xs">★</span>
+                        </div>
+                    </div>
+                    <p class="text-xs text-gray-medium mb-2">تهران، خیابان سعادت‌آباد</p>
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs text-gray-dark">اسپا و سلامتی</span>
+                        <span class="text-xs text-gray-medium">•</span>
+                        <span class="text-xs text-gray-medium">۱۸۷ نظر</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Salon Card 5 -->
+            <div class="flex-shrink-0 w-[236px] snap-card">
+                <div class="h-[157px] rounded-2xl overflow-hidden mb-3">
+                    <img src="{% static 'images/home-page/testpic.webp' %}" alt="آرایشگاه سحر" class="w-full h-full object-cover">
+                </div>
+                <div>
+                    <div class="flex items-center justify-between mb-1">
+                        <h3 class="font-bold text-gray-dark text-sm">آرایشگاه سحر</h3>
+                        <div class="flex items-center gap-1">
+                            <span class="text-xs text-gray-dark">4.9</span>
+                            <span class="text-yellow-400 text-xs">★</span>
+                        </div>
+                    </div>
+                    <p class="text-xs text-gray-medium mb-2">تهران، خیابان مطهری</p>
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs text-gray-dark">آرایش</span>
+                        <span class="text-xs text-gray-medium">•</span>
+                        <span class="text-xs text-gray-medium">۳۴۵ نظر</span>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-    {% endif %}
 
-    <!-- Upcoming Appointment -->
-    {% if upcoming %}
-    <a class="flex items-center justify-between rounded-xl bg-gray-light p-4 border border-gray-200 transition-all duration-300 hover:shadow-md"
-        href="{% url 'customer_bookings' %}">
-        <div class="space-y-1">
-            <span class="text-xs font-semibold text-secondary block">نوبت بعدی شما</span>
-            <p class="text-sm font-bold text-gray-dark">{{ upcoming.service.name }}</p>
-        </div>
-        <div class="text-left text-xs text-gray-medium">
-            <p>{{ upcoming.date|date:'Y/m/d' }}</p>
-            <p class="font-medium mt-0.5">ساعت {{ upcoming.start_time|time:'H:i' }}</p>
-        </div>
-    </a>
-    {% endif %}
-
-    <!-- Browse by City Section -->
-    <section class="space-y-4">
-        <div class="flex items-center justify-between">
-            <h2 class="text-lg font-bold text-gray-dark">جستجو بر اساس شهر</h2>
-        </div>
-        
-        <div class="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
-            <a class="flex-shrink-0 w-32 bg-white rounded-xl border border-gray-200 p-3 hover:border-secondary transition-all duration-300" href="#">
-                <div class="text-center">
-                    <span class="block text-sm font-bold text-gray-dark">تهران</span>
-                    <span class="block text-xs text-gray-medium mt-1">۱۲۰+ سالن</span>
+    <!-- New to Zibaak Section -->
+    <div class="px-4 py-6">
+        <h2 class="text-lg font-bold text-gray-dark mb-4">New to Zibaak</h2>
+        <div class="flex gap-4 overflow-x-auto scrollbar-hide snap-x pb-2">
+            <!-- Salon Card 1 -->
+            <div class="flex-shrink-0 w-[236px] snap-card">
+                <div class="h-[157px] rounded-2xl overflow-hidden mb-3">
+                    <img src="{% static 'images/home-page/testpic.webp' %}" alt="سالن جدید نور" class="w-full h-full object-cover">
                 </div>
-            </a>
-            <a class="flex-shrink-0 w-32 bg-white rounded-xl border border-gray-200 p-3 hover:border-secondary transition-all duration-300" href="#">
-                <div class="text-center">
-                    <span class="block text-sm font-bold text-gray-dark">اصفهان</span>
-                    <span class="block text-xs text-gray-medium mt-1">۸۵+ سالن</span>
-                </div>
-            </a>
-            <a class="flex-shrink-0 w-32 bg-white rounded-xl border border-gray-200 p-3 hover:border-secondary transition-all duration-300" href="#">
-                <div class="text-center">
-                    <span class="block text-sm font-bold text-gray-dark">مشهد</span>
-                    <span class="block text-xs text-gray-medium mt-1">۷۰+ سالن</span>
-                </div>
-            </a>
-            <a class="flex-shrink-0 w-32 bg-white rounded-xl border border-gray-200 p-3 hover:border-secondary transition-all duration-300" href="#">
-                <div class="text-center">
-                    <span class="block text-sm font-bold text-gray-dark">شیراز</span>
-                    <span class="block text-xs text-gray-medium mt-1">۶۵+ سالن</span>
-                </div>
-            </a>
-            <a class="flex-shrink-0 w-32 bg-white rounded-xl border border-gray-200 p-3 hover:border-secondary transition-all duration-300" href="#">
-                <div class="text-center">
-                    <span class="block text-sm font-bold text-gray-dark">تبریز</span>
-                    <span class="block text-xs text-gray-medium mt-1">۵۵+ سالن</span>
-                </div>
-            </a>
-        </div>
-    </section>
-
-    <!-- Service Categories -->
-    <section class="space-y-4">
-        <div class="flex items-center justify-between">
-            <h2 class="text-lg font-bold text-gray-dark">
-                {% if user_city %}محبوب‌ترین‌های {{ user_city }}{% else %}دسته‌بندی خدمات{% endif %}
-            </h2>
-        </div>
-
-        <!-- Tabs -->
-        <div class="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
-            <button onclick="filterServices('recommended')" data-tab="recommended"
-                class="filter-btn active px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 whitespace-nowrap">
-                پیشنهادی
-            </button>
-            <button onclick="filterServices('packages')" data-tab="packages"
-                class="filter-btn px-4 py-2 rounded-full text-sm font-medium bg-white border border-gray-200 text-gray-dark transition-all duration-300 whitespace-nowrap">
-                بسته‌ها
-            </button>
-            <button onclick="filterServices('professionals')" data-tab="professionals"
-                class="filter-btn px-4 py-2 rounded-full text-sm font-medium bg-white border border-gray-200 text-gray-dark transition-all duration-300 whitespace-nowrap">
-                متخصصان
-            </button>
-        </div>
-
-        <!-- Tab Content -->
-        <div class="relative">
-            <!-- Recommended Group -->
-            <div id="recommendedGroup" class="service-group grid grid-cols-2 gap-3">
-                {% for category in categories|slice:":4" %}
-                <a class="group bg-white rounded-xl border border-gray-200 p-3 hover:border-secondary hover:shadow-md transition-all duration-300"
-                    href="{% url 'category_providers' category.slug %}">
-                    <div class="w-full aspect-square rounded-lg bg-gray-light mb-3 overflow-hidden">
-                        {% if category.image %}
-                        <img src="{{ category.image.url }}" class="w-full h-full object-cover">
-                        {% else %}
-                        <div class="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200"></div>
-                        {% endif %}
+                <div>
+                    <div class="flex items-center justify-between mb-1">
+                        <h3 class="font-bold text-gray-dark text-sm">سالن جدید نور</h3>
+                        <div class="flex items-center gap-1">
+                            <span class="text-xs text-gray-dark">4.5</span>
+                            <span class="text-yellow-400 text-xs">★</span>
+                        </div>
                     </div>
-                    <span class="block text-sm font-bold text-gray-dark text-center group-hover:text-secondary transition-colors duration-300">
-                        {{ category.name }}
-                    </span>
-                </a>
-                {% empty %}
-                <p class="text-gray-medium text-sm text-center py-6 col-span-2">موردی یافت نشد.</p>
-                {% endfor %}
+                    <p class="text-xs text-gray-medium mb-2">تهران، خیابان جردن</p>
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs text-gray-dark">مو و استایل</span>
+                        <span class="text-xs text-gray-medium">•</span>
+                        <span class="text-xs text-gray-medium">۴۵ نظر</span>
+                    </div>
+                </div>
             </div>
 
-            <!-- Packages Group -->
-            <div id="packagesGroup" class="service-group hidden grid grid-cols-2 gap-3">
-                {% for template in templates|slice:":4" %}
-                <a class="group bg-white rounded-xl border border-gray-200 p-3 hover:border-secondary hover:shadow-md transition-all duration-300"
-                    href="{% url 'category_providers' template.category.slug %}">
-                    <div class="w-full aspect-square rounded-lg bg-gray-light mb-3">
-                        <div class="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200"></div>
+            <!-- Salon Card 2 -->
+            <div class="flex-shrink-0 w-[236px] snap-card">
+                <div class="h-[157px] rounded-2xl overflow-hidden mb-3">
+                    <img src="{% static 'images/home-page/testpic.webp' %}" alt="مرکز زیبایی گل" class="w-full h-full object-cover">
+                </div>
+                <div>
+                    <div class="flex items-center justify-between mb-1">
+                        <h3 class="font-bold text-gray-dark text-sm">مرکز زیبایی گل</h3>
+                        <div class="flex items-center gap-1">
+                            <span class="text-xs text-gray-dark">4.7</span>
+                            <span class="text-yellow-400 text-xs">★</span>
+                        </div>
                     </div>
-                    <span class="block text-sm font-bold text-gray-dark truncate text-center">{{ template.name }}</span>
-                    <span class="block text-xs text-gray-medium text-center mt-1">{{ template.category.name }}</span>
-                </a>
-                {% empty %}
-                <p class="text-gray-medium text-sm text-center py-6 col-span-2">بسته‌ای یافت نشد.</p>
-                {% endfor %}
+                    <p class="text-xs text-gray-medium mb-2">تهران، خیابان ونک</p>
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs text-gray-dark">ناخن</span>
+                        <span class="text-xs text-gray-medium">•</span>
+                        <span class="text-xs text-gray-medium">۶۷ نظر</span>
+                    </div>
+                </div>
             </div>
 
-            <!-- Professionals Group -->
-            <div id="professionalsGroup" class="service-group hidden grid grid-cols-2 gap-3">
-                {% for service in popular_services|slice:":4" %}
-                <a class="group bg-white rounded-xl border border-gray-200 p-3 hover:border-secondary hover:shadow-md transition-all duration-300 relative"
-                    href="{% url 'provider_public_page' service.provider.slug %}">
-                    <div class="w-full aspect-square rounded-lg bg-gray-light mb-3">
-                        {% if service.image %}
-                        <img src="{{ service.image.url }}" class="w-full h-full object-cover">
-                        {% else %}
-                        <div class="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200"></div>
-                        {% endif %}
+            <!-- Salon Card 3 -->
+            <div class="flex-shrink-0 w-[236px] snap-card">
+                <div class="h-[157px] rounded-2xl overflow-hidden mb-3">
+                    <img src="{% static 'images/home-page/testpic.webp' %}" alt="اسپا سبز" class="w-full h-full object-cover">
+                </div>
+                <div>
+                    <div class="flex items-center justify-between mb-1">
+                        <h3 class="font-bold text-gray-dark text-sm">اسپا سبز</h3>
+                        <div class="flex items-center gap-1">
+                            <span class="text-xs text-gray-dark">4.8</span>
+                            <span class="text-yellow-400 text-xs">★</span>
+                        </div>
                     </div>
-                    <span class="block text-sm font-bold text-gray-dark truncate">{{ service.name }}</span>
-                    <span class="block text-xs text-gray-medium mt-1">{{ service.provider.user.fullname }}</span>
-                    <span class="absolute top-4 left-4 bg-white text-xs text-secondary font-bold px-2 py-0.5 rounded-full border border-secondary">
-                        محبوب
-                    </span>
-                </a>
-                {% empty %}
-                <p class="text-gray-medium text-sm text-center py-6 col-span-2">متخصصی یافت نشد.</p>
-                {% endfor %}
+                    <p class="text-xs text-gray-medium mb-2">تهران، خیابان پاسداران</p>
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs text-gray-dark">اسپا و سلامتی</span>
+                        <span class="text-xs text-gray-medium">•</span>
+                        <span class="text-xs text-gray-medium">۵۶ نظر</span>
+                    </div>
+                </div>
             </div>
         </div>
-    </section>
+    </div>
 
-    <!-- Featured Providers -->
-    <section class="space-y-4">
-        <div class="flex items-center justify-between">
-            <h2 class="text-lg font-bold text-gray-dark">متخصص‌های منتخب</h2>
-            <div class="flex gap-1">
-                <button onclick="scrollProviders('right')"
-                    class="bg-white p-2 rounded-full border border-gray-200 hover:bg-gray-light transition-colors duration-300">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-medium" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                    </svg>
-                </button>
-                <button onclick="scrollProviders('left')"
-                    class="bg-white p-2 rounded-full border border-gray-200 hover:bg-gray-light transition-colors duration-300">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-medium" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <!-- Trending Section -->
+    <div class="px-4 py-6">
+        <h2 class="text-lg font-bold text-gray-dark mb-4">Trending</h2>
+        <div class="flex gap-4 overflow-x-auto scrollbar-hide snap-x pb-2">
+            <!-- Salon Card 1 -->
+            <div class="flex-shrink-0 w-[236px] snap-card">
+                <div class="h-[157px] rounded-2xl overflow-hidden mb-3">
+                    <img src="{% static 'images/home-page/testpic.webp' %}" alt="سالن محبوب آفتاب" class="w-full h-full object-cover">
+                </div>
+                <div>
+                    <div class="flex items-center justify-between mb-1">
+                        <h3 class="font-bold text-gray-dark text-sm">سالن محبوب آفتاب</h3>
+                        <div class="flex items-center gap-1">
+                            <span class="text-xs text-gray-dark">4.9</span>
+                            <span class="text-yellow-400 text-xs">★</span>
+                        </div>
+                    </div>
+                    <p class="text-xs text-gray-medium mb-2">تهران، خیابان ولیعصر</p>
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs text-gray-dark">مو و استایل</span>
+                        <span class="text-xs text-gray-medium">•</span>
+                        <span class="text-xs text-gray-medium">۵۶۷ نظر</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Salon Card 2 -->
+            <div class="flex-shrink-0 w-[236px] snap-card">
+                <div class="h-[157px] rounded-2xl overflow-hidden mb-3">
+                    <img src="{% static 'images/home-page/testpic.webp' %}" alt="مرکز الماس" class="w-full h-full object-cover">
+                </div>
+                <div>
+                    <div class="flex items-center justify-between mb-1">
+                        <h3 class="font-bold text-gray-dark text-sm">مرکز الماس</h3>
+                        <div class="flex items-center gap-1">
+                            <span class="text-xs text-gray-dark">4.8</span>
+                            <span class="text-yellow-400 text-xs">★</span>
+                        </div>
+                    </div>
+                    <p class="text-xs text-gray-medium mb-2">تهران، خیابان ملاصدرا</p>
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs text-gray-dark">ناخن</span>
+                        <span class="text-xs text-gray-medium">•</span>
+                        <span class="text-xs text-gray-medium">۴۳۲ نظر</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Salon Card 3 -->
+            <div class="flex-shrink-0 w-[236px] snap-card">
+                <div class="h-[157px] rounded-2xl overflow-hidden mb-3">
+                    <img src="{% static 'images/home-page/testpic.webp' %}" alt="سالن ستاره" class="w-full h-full object-cover">
+                </div>
+                <div>
+                    <div class="flex items-center justify-between mb-1">
+                        <h3 class="font-bold text-gray-dark text-sm">سالن ستاره</h3>
+                        <div class="flex items-center gap-1">
+                            <span class="text-xs text-gray-dark">4.7</span>
+                            <span class="text-yellow-400 text-xs">★</span>
+                        </div>
+                    </div>
+                    <p class="text-xs text-gray-medium mb-2">تهران، خیابان شریعتی</p>
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs text-gray-dark">آرایش</span>
+                        <span class="text-xs text-gray-medium">•</span>
+                        <span class="text-xs text-gray-medium">۳۸۹ نظر</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reviews Section -->
+    <div class="px-4 py-8">
+        <div class="flex items-center justify-between mb-4">
+            <h2 class="text-lg font-bold text-gray-dark">Reviews</h2>
+            <div class="flex gap-2">
+                <button class="p-2 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-dark" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
                     </svg>
                 </button>
+                <button class="p-2 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-dark" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                    </svg>
+                </button>
             </div>
         </div>
-
-        <div id="providersSlider"
-            class="flex gap-4 overflow-x-auto pb-2 snap-x scrollbar-hide cursor-grab active:cursor-grabbing">
-            {% for provider in featured_providers %}
-            <a class="snap-start min-w-[260px] rounded-xl bg-white border border-gray-200 overflow-hidden flex-shrink-0 hover:shadow-md transition-all duration-300"
-                href="{% url 'provider_public_page' provider.slug %}">
-                <div class="relative h-24 w-full bg-gray-light">
-                    {% if provider.cover_image %}
-                    <img src="{{ provider.cover_image.url }}" class="w-full h-full object-cover">
-                    {% else %}
-                    <div class="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200"></div>
-                    {% endif %}
-
-                    <div class="absolute -bottom-6 right-4">
-                        {% if provider.avatar %}
-                        <img src="{{ provider.avatar.url }}" class="w-14 h-14 rounded-full border-2 border-white object-cover shadow-sm">
-                        {% else %}
-                        <div class="w-14 h-14 rounded-full border-2 border-white bg-gray-200 flex items-center justify-center text-lg">👤</div>
-                        {% endif %}
+        <div class="flex gap-4 overflow-x-auto scrollbar-hide pb-2">
+            <!-- Review Card 1 -->
+            <div class="flex-shrink-0 w-[280px] bg-white rounded-2xl shadow-md p-4">
+                <div class="flex items-center gap-2 mb-3">
+                    <div class="flex items-center gap-1">
+                        <span class="text-sm font-bold text-gray-dark">5</span>
+                        <span class="text-yellow-400 text-sm">★</span>
+                    </div>
+                    <span class="text-xs text-gray-medium">rating</span>
+                </div>
+                <h3 class="font-bold text-gray-dark text-sm mb-2">The best booking system</h3>
+                <p class="text-xs text-gray-medium mb-4">Great experience, easy to book. Paying for treatments is so convenient — no cash or cards needed!</p>
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center">
+                        <span class="text-sm font-bold text-gray-dark">L</span>
+                    </div>
+                    <div>
+                        <p class="text-sm font-bold text-gray-dark">Lucy</p>
+                        <p class="text-xs text-gray-medium">London, UK</p>
                     </div>
                 </div>
+            </div>
 
-                <div class="p-4 pt-8 space-y-2">
-                    <div class="flex items-center justify-between">
-                        <span class="text-sm font-bold text-gray-dark">{{ provider.user.fullname }}</span>
-                        <div class="flex items-center gap-0.5 text-sm text-secondary font-bold">
-                            <span>★</span>
-                            <span class="text-gray-medium text-xs">{{ provider.rating|default:"۰" }}</span>
+            <!-- Review Card 2 -->
+            <div class="flex-shrink-0 w-[280px] bg-white rounded-2xl shadow-md p-4">
+                <div class="flex items-center gap-2 mb-3">
+                    <div class="flex items-center gap-1">
+                        <span class="text-sm font-bold text-gray-dark">5</span>
+                        <span class="text-yellow-400 text-sm">★</span>
+                    </div>
+                    <span class="text-xs text-gray-medium">rating</span>
+                </div>
+                <h3 class="font-bold text-gray-dark text-sm mb-2">Amazing service</h3>
+                <p class="text-xs text-gray-medium mb-4">Found my favorite salon through this app. The booking process is seamless and the reminders are helpful!</p>
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center">
+                        <span class="text-sm font-bold text-gray-dark">S</span>
+                    </div>
+                    <div>
+                        <p class="text-sm font-bold text-gray-dark">Sarah</p>
+                        <p class="text-xs text-gray-medium">Manchester, UK</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Review Card 3 -->
+            <div class="flex-shrink-0 w-[280px] bg-white rounded-2xl shadow-md p-4">
+                <div class="flex items-center gap-2 mb-3">
+                    <div class="flex items-center gap-1">
+                        <span class="text-sm font-bold text-gray-dark">5</span>
+                        <span class="text-yellow-400 text-sm">★</span>
+                    </div>
+                    <span class="text-xs text-gray-medium">rating</span>
+                </div>
+                <h3 class="font-bold text-gray-dark text-sm mb-2">Love it!</h3>
+                <p class="text-xs text-gray-medium mb-4">So easy to find and book appointments. The variety of services available is impressive.</p>
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center">
+                        <span class="text-sm font-bold text-gray-dark">E</span>
+                    </div>
+                    <div>
+                        <p class="text-sm font-bold text-gray-dark">Emma</p>
+                        <p class="text-xs text-gray-medium">Birmingham, UK</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Review Card 4 -->
+            <div class="flex-shrink-0 w-[280px] bg-white rounded-2xl shadow-md p-4">
+                <div class="flex items-center gap-2 mb-3">
+                    <div class="flex items-center gap-1">
+                        <span class="text-sm font-bold text-gray-dark">5</span>
+                        <span class="text-yellow-400 text-sm">★</span>
+                    </div>
+                    <span class="text-xs text-gray-medium">rating</span>
+                </div>
+                <h3 class="font-bold text-gray-dark text-sm mb-2">Perfect for busy people</h3>
+                <p class="text-xs text-gray-medium mb-4">Quick and efficient booking. I can manage all my beauty appointments in one place.</p>
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center">
+                        <span class="text-sm font-bold text-gray-dark">J</span>
+                    </div>
+                    <div>
+                        <p class="text-sm font-bold text-gray-dark">James</p>
+                        <p class="text-xs text-gray-medium">Leeds, UK</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Review Card 5 -->
+            <div class="flex-shrink-0 w-[280px] bg-white rounded-2xl shadow-md p-4">
+                <div class="flex items-center gap-2 mb-3">
+                    <div class="flex items-center gap-1">
+                        <span class="text-sm font-bold text-gray-dark">5</span>
+                        <span class="text-yellow-400 text-sm">★</span>
+                    </div>
+                    <span class="text-xs text-gray-medium">rating</span>
+                </div>
+                <h3 class="font-bold text-gray-dark text-sm mb-2">Highly recommend</h3>
+                <p class="text-xs text-gray-medium mb-4">Great app with excellent features. The payment system is secure and convenient.</p>
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center">
+                        <span class="text-sm font-bold text-gray-dark">M</span>
+                    </div>
+                    <div>
+                        <p class="text-sm font-bold text-gray-dark">Maria</p>
+                        <p class="text-xs text-gray-medium">Edinburgh, UK</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search Modal -->
+    <div id="searchModal" class="modal-overlay">
+        <div class="modal-content w-full">
+            <div class="sticky top-0 bg-white border-b border-gray-200 p-4 z-10">
+                <div class="flex items-center justify-between mb-4">
+                    <button onclick="closeSearchModal()" class="text-gray-medium">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                    <h2 class="text-lg font-bold text-gray-dark">جستجو</h2>
+                    <button onclick="clearSearch()" class="text-sm text-gray-medium">پاک کردن</button>
+                </div>
+                
+                <!-- Search Input -->
+                <div class="relative">
+                    <input type="text" id="searchInput" placeholder="جستجوی خدمات، مکان‌ها، متخصصان..."
+                        class="w-full rounded-xl border border-gray-200 bg-gray-light p-4 pr-12 pl-4 text-sm focus:ring-2 focus:ring-secondary focus:border-transparent focus:outline-none transition-all duration-300">
+                    <div class="absolute pr-4 right-0 top-1/2 -translate-y-1/2 text-gray-medium">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tabs -->
+            <div class="flex gap-2 overflow-x-auto pb-1 px-4 pt-4 scrollbar-hide border-b border-gray-200">
+                <button onclick="switchTab('all')" data-tab="all"
+                    class="search-tab active px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 whitespace-nowrap">
+                    همه
+                </button>
+                <button onclick="switchTab('treatments')" data-tab="treatments"
+                    class="search-tab px-4 py-2 rounded-full text-sm font-medium bg-white border border-gray-200 text-gray-dark transition-all duration-300 whitespace-nowrap">
+                    خدمات
+                </button>
+                <button onclick="switchTab('venues')" data-tab="venues"
+                    class="search-tab px-4 py-2 rounded-full text-sm font-medium bg-white border border-gray-200 text-gray-dark transition-all duration-300 whitespace-nowrap">
+                    مکان‌ها
+                </button>
+                <button onclick="switchTab('professionals')" data-tab="professionals"
+                    class="search-tab px-4 py-2 rounded-full text-sm font-medium bg-white border border-gray-200 text-gray-dark transition-all duration-300 whitespace-nowrap">
+                    متخصصان
+                </button>
+                <button onclick="switchTab('recents')" data-tab="recents"
+                    class="search-tab px-4 py-2 rounded-full text-sm font-medium bg-white border border-gray-200 text-gray-dark transition-all duration-300 whitespace-nowrap">
+                    اخیر
+                </button>
+            </div>
+
+            <!-- Tab Content -->
+            <div class="p-4">
+                <!-- All Tab -->
+                <div id="allTab" class="tab-content space-y-4">
+                    <div>
+                        <h3 class="text-sm font-bold text-gray-dark mb-3">همه خدمات</h3>
+                        <div class="space-y-2">
+                            <div class="flex items-center justify-between p-3 rounded-xl bg-gray-light hover:bg-gray-100 cursor-pointer transition-colors">
+                                <span class="text-sm text-gray-dark">همه خدمات</span>
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-medium" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                                </svg>
+                            </div>
+                            <div class="flex items-center justify-between p-3 rounded-xl bg-gray-light hover:bg-gray-100 cursor-pointer transition-colors">
+                                <span class="text-sm text-gray-dark">هر زمانی</span>
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-medium" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                                </svg>
+                            </div>
                         </div>
                     </div>
-                    <div class="flex items-center justify-between text-xs text-gray-medium">
-                        <span>{{ provider.specialty|default:"متخصص زیبایی" }}</span>
-                        <span class="bg-gray-light px-2 py-0.5 rounded-md">{{ provider.city }}</span>
-                    </div>
-                    <button class="w-full mt-2 bg-secondary text-white py-2 rounded-lg text-sm font-medium hover:bg-secondary transition-colors">
-                        رزرو نوبت
-                    </button>
-                </div>
-            </a>
-            {% empty %}
-            <p class="text-gray-medium text-sm text-center py-6 w-full">متخصصی یافت نشد.</p>
-            {% endfor %}
-        </div>
-    </section>
 
-    <!-- Reviews Section -->
-    <section class="space-y-4">
-        <div class="flex items-center justify-between">
-            <h2 class="text-lg font-bold text-gray-dark">نظرات کاربران</h2>
-            <a href="#" class="text-sm text-secondary hover:underline">مشاهده همه</a>
-        </div>
-
-        <div class="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
-            <div class="flex-shrink-0 w-72 bg-white rounded-xl border border-gray-200 p-4">
-                <div class="flex items-center gap-2 mb-2">
-                    <div class="flex text-secondary">★★★★★</div>
-                    <span class="text-xs text-gray-medium">۵.۰</span>
-                </div>
-                <p class="text-sm text-gray-dark mb-3">عالی بود! حرفه‌ای و با صبر و حوصله. حتماً دوباره میام.</p>
-                <div class="flex items-center gap-2">
-                    <div class="w-8 h-8 bg-gray-light rounded-full flex items-center justify-center text-xs">س</div>
                     <div>
-                        <span class="text-xs font-bold text-gray-dark">سارا محمدی</span>
-                        <span class="block text-xs text-gray-medium">ناخن‌کاری</span>
+                        <h3 class="text-sm font-bold text-gray-dark mb-3">خدمات</h3>
+                        <div class="space-y-2">
+                            <div class="flex items-center justify-between p-3 rounded-xl bg-gray-light hover:bg-gray-100 cursor-pointer transition-colors">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-full bg-gradient-to-br from-pink-100 to-pink-200 flex items-center justify-center">💇</div>
+                                    <span class="text-sm text-gray-dark">مو و استایل</span>
+                                </div>
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-medium" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                                </svg>
+                            </div>
+                            <div class="flex items-center justify-between p-3 rounded-xl bg-gray-light hover:bg-gray-100 cursor-pointer transition-colors">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-full bg-gradient-to-br from-purple-100 to-purple-200 flex items-center justify-center">💅</div>
+                                    <span class="text-sm text-gray-dark">ناخن</span>
+                                </div>
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-medium" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                                </svg>
+                            </div>
+                            <div class="flex items-center justify-between p-3 rounded-xl bg-gray-light hover:bg-gray-100 cursor-pointer transition-colors">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center">💆</div>
+                                    <span class="text-sm text-gray-dark">ماساژ</span>
+                                </div>
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-medium" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                                </svg>
+                            </div>
+                            <div class="flex items-center justify-between p-3 rounded-xl bg-gray-light hover:bg-gray-100 cursor-pointer transition-colors">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-full bg-gradient-to-br from-green-100 to-green-200 flex items-center justify-center">🧖</div>
+                                    <span class="text-sm text-gray-dark">اسپا و سلامتی</span>
+                                </div>
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-medium" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                                </svg>
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </div>
-            <div class="flex-shrink-0 w-72 bg-white rounded-xl border border-gray-200 p-4">
-                <div class="flex items-center gap-2 mb-2">
-                    <div class="flex text-secondary">★★★★★</div>
-                    <span class="text-xs text-gray-medium">۵.۰</span>
-                </div>
-                <p class="text-sm text-gray-dark mb-3">تجربه عالی! سالن تمیز و متخصص مهربان.</p>
-                <div class="flex items-center gap-2">
-                    <div class="w-8 h-8 bg-gray-light rounded-full flex items-center justify-center text-xs">م</div>
-                    <div>
-                        <span class="text-xs font-bold text-gray-dark">مریم احمدی</span>
-                        <span class="block text-xs text-gray-medium">مژه</span>
-                    </div>
-                </div>
-            </div>
-            <div class="flex-shrink-0 w-72 bg-white rounded-xl border border-gray-200 p-4">
-                <div class="flex items-center gap-2 mb-2">
-                    <div class="flex text-secondary">★★★★★</div>
-                    <span class="text-xs text-gray-medium">۵.۰</span>
-                </div>
-                <p class="text-sm text-gray-dark mb-3">بهترین سالن شهر! قیمت مناسب و کیفیت عالی.</p>
-                <div class="flex items-center gap-2">
-                    <div class="w-8 h-8 bg-gray-light rounded-full flex items-center justify-center text-xs">ع</div>
-                    <div>
-                        <span class="text-xs font-bold text-gray-dark">علی رضایی</span>
-                        <span class="block text-xs text-gray-medium">مو</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
 
-    <!-- App Download Section -->
-    <section class="bg-gray-light rounded-2xl p-6 text-center">
-        <h2 class="text-lg font-bold text-gray-dark mb-2">دانلود اپلیکیشن نوبتینو</h2>
-        <p class="text-sm text-gray-medium mb-4">رزرو خدمات زیبایی با اپلیکیشن موبایل</p>
-        
-        <div class="flex justify-center gap-3 mb-4">
-            <a href="#" class="bg-black text-white px-4 py-2 rounded-lg text-xs flex items-center gap-2">
-                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M17.05 20.28c-.98.95-2.05.88-3.08.46-1.09-.44-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.46C6.38 19.08 5.1 16.5 5.1 12.5c0-4.5 2.25-7.5 5.5-7.5 1.25 0 2.5.5 3.5 1.25.75.5 1.5.5 2.25 0 1-.75 2.25-1.25 3.5-1.25 3.25 0 5.5 3 5.5 7.5 0 4-1.28 6.58-2.8 7.78zM12 2.5c-2.5 0-4.5 2-4.5 4.5 0 1.25.5 2.5 1.25 3.5.5.75 1.5.75 2.25 0 1-.75 2.25-1.25 3.5-1.25 2.5 0 4.5-2 4.5-4.5 0-2.5-2-4.5-4.5-4.5z"/>
-                </svg>
-                App Store
-            </a>
-            <a href="#" class="bg-black text-white px-4 py-2 rounded-lg text-xs flex items-center gap-2">
-                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M3.609 1.814L13.792 12 3.61 22.186a.996.996 0 01-.61-.92V2.734a1 1 0 01.609-.92zm10.89 10.893l2.302 2.302-10.937 6.333 8.635-8.635zm3.199-3.198l2.807 1.626a1 1 0 010 1.73l-2.808 1.626L15.206 12l2.492-2.491zM5.864 2.658L16.8 8.99l-2.302 2.302-8.634-8.634z"/>
-                </svg>
-                Google Play
-            </a>
-        </div>
-        
-        <div class="inline-block bg-white p-2 rounded-lg">
-            <div class="w-24 h-24 bg-gray-200 flex items-center justify-center text-xs text-gray-medium">
-                QR Code
-            </div>
-        </div>
-    </section>
-
-    <!-- Blog Section -->
-    <section class="space-y-4">
-        <h2 class="text-lg font-bold text-gray-dark">مجله زیبایی</h2>
-        <div class="grid grid-cols-1 gap-4">
-            {% for post in latest_posts|slice:":3" %}
-            <a class="flex gap-3 bg-white rounded-xl border border-gray-200 p-3 hover:border-secondary hover:shadow-md transition-all duration-300"
-                href="/blog/{{ post.slug }}/">
-                <div class="w-24 h-24 rounded-lg overflow-hidden bg-gray-light flex-shrink-0">
-                    {% if post.image %}
-                    <img src="{{ post.image.url }}" class="w-full h-full object-cover">
-                    {% else %}
-                    <div class="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center text-lg">📝</div>
-                    {% endif %}
-                </div>
-                <div class="flex flex-col justify-between py-0.5">
-                    <h4 class="text-sm font-bold text-gray-dark line-clamp-2 leading-relaxed">{{ post.title }}</h4>
-                    <span class="text-xs text-gray-medium flex items-center gap-1">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 3V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 002-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                <!-- Treatments Tab -->
+                <div id="treatmentsTab" class="tab-content hidden space-y-2">
+                    <div class="flex items-center justify-between p-3 rounded-xl bg-gray-light hover:bg-gray-100 cursor-pointer transition-colors">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-full bg-gradient-to-br from-pink-100 to-pink-200 flex items-center justify-center">💇</div>
+                            <span class="text-sm text-gray-dark">مو و استایل</span>
+                        </div>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-medium" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                         </svg>
-                        {{ post.created_at|date:"Y/m/d" }}
-                    </span>
+                    </div>
+                    <div class="flex items-center justify-between p-3 rounded-xl bg-gray-light hover:bg-gray-100 cursor-pointer transition-colors">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-full bg-gradient-to-br from-purple-100 to-purple-200 flex items-center justify-center">💅</div>
+                            <span class="text-sm text-gray-dark">ناخن</span>
+                        </div>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-medium" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                        </svg>
+                    </div>
+                    <div class="flex items-center justify-between p-3 rounded-xl bg-gray-light hover:bg-gray-100 cursor-pointer transition-colors">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center">💆</div>
+                            <span class="text-sm text-gray-dark">ماساژ</span>
+                        </div>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-medium" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                        </svg>
+                    </div>
+                    <div class="flex items-center justify-between p-3 rounded-xl bg-gray-light hover:bg-gray-100 cursor-pointer transition-colors">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-full bg-gradient-to-br from-green-100 to-green-200 flex items-center justify-center">🧖</div>
+                            <span class="text-sm text-gray-dark">اسپا و سلامتی</span>
+                        </div>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-medium" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                        </svg>
+                    </div>
                 </div>
-            </a>
-            {% empty %}
-            <p class="text-gray-medium text-sm text-center py-6">مطلبی منتشر نشده است.</p>
-            {% endfor %}
+
+                <!-- Venues Tab -->
+                <div id="venuesTab" class="tab-content hidden">
+                    <p class="text-sm text-gray-medium text-center py-8">مکانی یافت نشد</p>
+                </div>
+
+                <!-- Professionals Tab -->
+                <div id="professionalsTab" class="tab-content hidden">
+                    <p class="text-sm text-gray-medium text-center py-8">متخصصی یافت نشد</p>
+                </div>
+
+                <!-- Recents Tab -->
+                <div id="recentsTab" class="tab-content hidden">
+                    <p class="text-sm text-gray-medium text-center py-8">جستجوی اخیری وجود ندارد</p>
+                </div>
+            </div>
+
+            <!-- Search Button -->
+            <div class="p-4 border-t border-gray-200">
+                <button onclick="performSearch()" class="w-full bg-secondary text-white py-3 rounded-xl text-sm font-medium hover:bg-secondary transition-colors">
+                    جستجو
+                </button>
+            </div>
         </div>
-    </section>
+    </div>
 </section>
 
 <script>
-    // City dropdown management
-    const cityDisplay = document.getElementById('cityDisplay');
-    const cityDropdown = document.getElementById('cityDropdown');
-    const selectedCity = document.getElementById('selectedCity');
-    const cityForm = document.getElementById('cityForm');
-
-    if (cityDisplay) {
-        cityDisplay.addEventListener('click', (e) => {
-            e.stopPropagation();
-            cityDropdown.classList.toggle('hidden');
-        });
-
-        document.querySelectorAll('#cityDropdown [data-value]').forEach(option => {
-            option.addEventListener('click', () => {
-                selectedCity.value = option.dataset.value;
-                cityForm.submit();
-            });
-        });
-
-        document.addEventListener('click', () => cityDropdown.classList.add('hidden'));
+    // Search modal functions
+    function openSearchModal(type) {
+        document.getElementById('searchModal').classList.add('active');
+        document.body.style.overflow = 'hidden';
+        
+        // Set default tab based on type
+        if (type === 'treatments') {
+            switchTab('treatments');
+        } else if (type === 'location') {
+            switchTab('venues');
+        } else if (type === 'time') {
+            switchTab('all');
+        }
     }
 
-    // Tab filtering
-    function filterServices(type) {
-        document.querySelectorAll('.service-group').forEach(group => group.classList.add('hidden'));
-        document.getElementById(type + 'Group').classList.remove('hidden');
+    function closeSearchModal() {
+        document.getElementById('searchModal').classList.remove('active');
+        document.body.style.overflow = '';
+    }
 
-        document.querySelectorAll('.filter-btn').forEach(btn => {
+    function clearSearch() {
+        document.getElementById('searchInput').value = '';
+    }
+
+    function switchTab(tabName) {
+        // Hide all tabs
+        document.querySelectorAll('.tab-content').forEach(tab => tab.classList.add('hidden'));
+        document.querySelectorAll('.search-tab').forEach(btn => {
             btn.classList.remove('active', 'bg-secondary', 'text-white', 'border-transparent');
             btn.classList.add('bg-white', 'border-gray-200', 'text-gray-dark');
         });
 
-        const activeBtn = document.querySelector(`.filter-btn[data-tab="${type}"]`);
+        // Show selected tab
+        document.getElementById(tabName + 'Tab').classList.remove('hidden');
+        
+        // Style active button
+        const activeBtn = document.querySelector(`.search-tab[data-tab="${tabName}"]`);
         activeBtn.classList.add('active', 'bg-secondary', 'text-white', 'border-transparent');
         activeBtn.classList.remove('bg-white', 'border-gray-200', 'text-gray-dark');
     }
-    filterServices('recommended');
 
-    // Provider slider scroll
-    function scrollProviders(direction) {
-        const slider = document.getElementById('providersSlider');
-        const modifier = direction === 'left' ? -260 : 260;
-        slider.scrollBy({ left: modifier, behavior: 'smooth' });
+    function performSearch() {
+        const query = document.getElementById('searchInput').value;
+        // Navigate to search page with query
+        window.location.href = `/search/?q=${encodeURIComponent(query)}`;
     }
 
-    // Drag to scroll
-    const slider = document.getElementById('providersSlider');
-    let isDown = false; let startX; let scrollLeft;
+    // Close modal on overlay click
+    document.getElementById('searchModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeSearchModal();
+        }
+    });
 
-    slider.addEventListener('mousedown', (e) => {
-        isDown = true; startX = e.pageX - slider.offsetLeft; scrollLeft = slider.scrollLeft;
-    });
-    slider.addEventListener('mouseleave', () => isDown = false);
-    slider.addEventListener('mouseup', () => isDown = false);
-    slider.addEventListener('mousemove', (e) => {
-        if (!isDown) return;
-        e.preventDefault();
-        const x = e.pageX - slider.offsetLeft;
-        const walk = (x - startX) * 1.5;
-        slider.scrollLeft = scrollLeft - walk;
-    });
+    // Initialize with All tab
+    switchTab('all');
 </script>
 
 <style>
-    .scrollbar-hide::-webkit-scrollbar {
-        display: none;
-    }
-
-    .scrollbar-hide {
-        -ms-overflow-style: none;
-        scrollbar-width: none;
-    }
-
-    .filter-btn.active {
+    .search-tab.active {
         box-shadow: 0 4px 12px rgba(0, 166, 81, 0.3);
     }
 </style>

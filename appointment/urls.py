@@ -2,9 +2,11 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.contrib.sitemaps.views import sitemap
+from django.http import HttpResponseRedirect
 from django.urls import include, path
 from django.views.generic import RedirectView, TemplateView
 from blog.sitemap import BlogSitemap
+from provider.views import home
 
 # ================ محدود کردن دسترسی ادمین ================
 _original_get_app_list = admin.site.get_app_list
@@ -48,12 +50,19 @@ sitemaps = {
     'blog': BlogSitemap,
 }
 
+def home_redirect(request):
+    if getattr(settings, 'SERVER_ON', False):
+        return HttpResponseRedirect('/blog/')
+    else:
+        return HttpResponseRedirect('/home/')
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('blog/', include('blog.urls')),
     path("cms/", include("wagtail.admin.urls")),
     path("documents/", include("wagtail.documents.urls")),
-    path('', RedirectView.as_view(url='/blog/', permanent=False)),
+    path('', home_redirect),
+    path('home/', home, name='home'),
     path('accounts/', include('accounts.urls')),
     path('bookings/', include('reservations.urls')),
     path('review/', include('review.urls')),

@@ -505,3 +505,7 @@ Product
 ```
 
 این تفکیک باعث می‌شود marketplace هم کنترل محتوایی داشته باشد، هم برای کاربر قابل جستجو و قابل فیلتر باشد، و هم provider بتواند قیمت و توضیحات اختصاصی خودش را مدیریت کند.
+
+
+.\tools\tailwindcss-windows-x64.exe -i .\static\css\input.css -o .\static\css\output.css --watch
+

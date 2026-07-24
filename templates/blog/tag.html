@@ -1,7 +1,7 @@
 {% extends "base_public.html" %}
 {% load static %}
 
-{% block title %}جستجوی مقالات - مجله نوبتینو{% endblock %}
+{% block title %}برچسب: #{{ tag.name }} - مجله نوبتینو{% endblock %}
 
 {% block header %}
 <nav class="sticky top-0 z-50 border-b border-gray-200 bg-white/95 backdrop-blur-md shadow-sm">
@@ -11,7 +11,7 @@
       
       <div class="hidden md:flex items-center gap-8 text-sm">
         <a href="{% url 'blog:home' %}" class="text-gray-700 hover:text-[#FB9D90] transition-colors font-medium">مجله</a>
-        <a href="{% url 'blog:search' %}" class="text-[#FB9D90] font-medium">جستجو</a>
+        <a href="{% url 'blog:search' %}" class="text-gray-700 hover:text-[#FB9D90] transition-colors font-medium">جستجو</a>
       </div>
 
       <div class="flex items-center gap-4">
@@ -32,46 +32,30 @@
 
 {% block content %}
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-    <div class="max-w-3xl mx-auto mb-10">
-        <h1 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">جستجوی مقالات</h1>
-        <p class="text-gray-600">
-            {% if query %}
-            {{ total_results }} نتیجه برای "{{ query }}"
-            {% else %}
-            عبارت مورد نظر خود را جستجو کنید
-            {% endif %}
-        </p>
-    </div>
+    <!-- Breadcrumb -->
+    <nav class="flex items-center gap-2 text-sm text-gray-500 mb-6">
+        <a href="{% url 'blog:home' %}" class="hover:text-[#FB9D90] transition-colors">مجله</a>
+        <svg class="w-4 h-4 rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+        </svg>
+        <span class="text-gray-900 font-medium">#{{ tag.name }}</span>
+    </nav>
 
-    <!-- Search Form -->
-    <form method="get" class="mb-10">
-        <div class="relative max-w-2xl mx-auto">
-            <input type="text" name="q" value="{{ query|default:'' }}" placeholder="جستجو در عنوان، متن و دسته‌بندی مقالات..."
-                   class="w-full px-6 py-4 pr-12 bg-white border border-gray-200 rounded-2xl focus:ring-2 focus:ring-[#FB9D90] focus:border-transparent text-lg shadow-sm">
-            <svg class="absolute right-4 top-1/2 -translate-y-1/2 w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-            </svg>
-            <button type="submit" class="absolute left-3 top-1/2 -translate-y-1/2 px-6 py-2 bg-[#FB9D90] text-white rounded-xl hover:bg-[#FDCCC5] transition-colors font-medium">
-                جستجو
-            </button>
-        </div>
-    </form>
-
-    <!-- Category Filter -->
-    <div class="mb-8">
-        <div class="flex gap-2 flex-wrap">
-            <a href="?q={{ query }}" class="px-4 py-2 rounded-full text-sm {% if not request.GET.category %}bg-[#FB9D90] text-white{% else %}bg-gray-100 text-gray-700 hover:bg-gray-200{% endif %} transition-colors">
-                همه دسته‌بندی‌ها
-            </a>
-            {% for category in categories %}
-            <a href="?q={{ query }}&category={{ category.slug }}" class="px-4 py-2 rounded-full text-sm {% if request.GET.category == category.slug %}bg-[#FB9D90] text-white{% else %}bg-gray-100 text-gray-700 hover:bg-gray-200{% endif %} transition-colors">
-                {{ category.name }}
-            </a>
-            {% endfor %}
+    <!-- Tag Header -->
+    <div class="mb-10">
+        <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
+            <div>
+                <h1 class="text-3xl md:text-4xl font-bold text-gray-900 mb-2">#{{ tag.name }}</h1>
+                <p class="text-gray-600">{{ page_obj.paginator.count }} مقاله با این برچسب</p>
+            </div>
+            <div class="flex gap-2">
+                <button class="px-4 py-2 bg-[#FB9D90] text-white rounded-lg text-sm">جدیدترین</button>
+                <button class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm hover:bg-gray-200 transition-colors">محبوب‌ترین</button>
+            </div>
         </div>
     </div>
 
-    {% if query %}
+    <!-- Posts Grid -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {% for post in page_obj %}
         <article class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-xl transition-all duration-300 group">
@@ -103,17 +87,17 @@
                 <p class="text-gray-600 text-sm mb-4 line-clamp-2">{{ post.excerpt|truncatechars:120 }}</p>
                 <div class="flex items-center justify-between text-xs text-gray-500 pt-4 border-t border-gray-100">
                     <span>{{ post.owner.get_full_name|default:"نویسنده" }}</span>
-                    <span>{{ post.first_published_at|date:"d %B %Y" }}</span>
+                    <span>{{ post.first_published_at|date:"Y/m/d" }}</span>
                 </div>
             </div>
         </article>
         {% empty %}
         <div class="col-span-3 text-center py-20">
             <svg class="w-20 h-20 mx-auto text-gray-300 mb-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A2 2 0 013 12V7a4 4 0 014-4z"/>
             </svg>
-            <h3 class="text-xl font-semibold text-gray-700 mb-2">نتیجه‌ای یافت نشد</h3>
-            <p class="text-gray-500 mb-6">با عبارات دیگر یا دسته‌بندی‌های مختلف جستجو کنید</p>
+            <h3 class="text-xl font-semibold text-gray-700 mb-2">مقاله‌ای یافت نشد</h3>
+            <p class="text-gray-500 mb-6">هنوز مقاله‌ای با این برچسب منتشر نشده است</p>
             <a href="{% url 'blog:home' %}" class="inline-block px-6 py-3 bg-[#FB9D90] text-white rounded-full hover:bg-[#FDCCC5] transition-colors">
                 بازگشت به مجله
             </a>
@@ -125,7 +109,7 @@
     {% if page_obj.has_other_pages %}
     <div class="flex justify-center gap-2 mt-12">
         {% if page_obj.has_previous %}
-        <a href="?q={{ query }}&page={{ page_obj.previous_page_number }}" class="px-5 py-2.5 border border-gray-200 rounded-xl hover:bg-gray-50 text-sm transition-colors">
+        <a href="?page={{ page_obj.previous_page_number }}" class="px-5 py-2.5 border border-gray-200 rounded-xl hover:bg-gray-50 text-sm transition-colors">
             قبلی
         </a>
         {% endif %}
@@ -133,45 +117,15 @@
             {% if page_obj.number == num %}
             <span class="px-5 py-2.5 bg-[#FB9D90] text-white rounded-xl text-sm font-medium">{{ num }}</span>
             {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
-            <a href="?q={{ query }}&page={{ num }}" class="px-5 py-2.5 border border-gray-200 rounded-xl hover:bg-gray-50 text-sm transition-colors">{{ num }}</a>
+            <a href="?page={{ num }}" class="px-5 py-2.5 border border-gray-200 rounded-xl hover:bg-gray-50 text-sm transition-colors">{{ num }}</a>
             {% endif %}
         {% endfor %}
         {% if page_obj.has_next %}
-        <a href="?q={{ query }}&page={{ page_obj.next_page_number }}" class="px-5 py-2.5 border border-gray-200 rounded-xl hover:bg-gray-50 text-sm transition-colors">
+        <a href="?page={{ page_obj.next_page_number }}" class="px-5 py-2.5 border border-gray-200 rounded-xl hover:bg-gray-50 text-sm transition-colors">
             بعدی
         </a>
         {% endif %}
     </div>
     {% endif %}
-    {% else %}
-    <!-- Empty State -->
-    <div class="text-center py-20">
-        <svg class="w-24 h-24 mx-auto text-gray-300 mb-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-        </svg>
-        <h3 class="text-2xl font-semibold text-gray-700 mb-3">جستجو در مجله نوبتینو</h3>
-        <p class="text-gray-500 mb-8 max-w-md mx-auto">عبارت مورد نظر خود را در کادر بالا وارد کنید تا مقالات مرتبط را پیدا کنید</p>
-    </div>
-    {% endif %}
 </div>
-
-<script>
-// Instant Search
-const searchInput = document.querySelector('input[name="q"]');
-if (searchInput) {
-    let searchTimeout;
-    
-    searchInput.addEventListener('input', function() {
-        clearTimeout(searchTimeout);
-        const query = this.value.trim();
-        
-        if (query.length >= 2) {
-            searchTimeout = setTimeout(() => {
-                // Optional: Auto-submit or show suggestions
-                // For now, let user press enter or click search button
-            }, 500);
-        }
-    });
-}
-</script>
 {% endblock %}

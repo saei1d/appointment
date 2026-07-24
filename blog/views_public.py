@@ -32,7 +32,7 @@ def blog_home(request):
         'random_posts': random_posts,
         'hero_post': featured_posts[0] if featured_posts else None,
     }
-    return render(request, 'blog/public/home.html', context)
+    return render(request, 'blog/home.html', context)
 
 
 def blog_detail(request, slug):
@@ -99,7 +99,7 @@ def blog_detail(request, slug):
         'comments': comments,
         'in_article_ads': {a['placement']: a['ads'] for a in in_article_ads},
     }
-    return render(request, 'blog/public/detail.html', context)
+    return render(request, 'blog/detail.html', context)
 
 
 def category_detail(request, slug):
@@ -114,7 +114,7 @@ def category_detail(request, slug):
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
-    return render(request, 'blog/public/category.html', {
+    return render(request, 'blog/category.html', {
         'category': category,
         'page_obj': page_obj,
     })
@@ -133,7 +133,7 @@ def tag_detail(request, slug):
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
-    return render(request, 'blog/public/tag.html', {
+    return render(request, 'blog/tag.html', {
         'tag': tag,
         'page_obj': page_obj,
     })
@@ -168,7 +168,7 @@ def blog_search(request):
         post_count=Count('blog_pages')
     ).filter(post_count__gt=0).order_by('-post_count')[:10]
 
-    return render(request, 'blog/public/search.html', {
+    return render(request, 'blog/search.html', {
         'query': query,
         'page_obj': page_obj,
         'total_results': posts.count(),

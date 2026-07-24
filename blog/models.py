@@ -59,6 +59,7 @@ class BlogCategory(models.Model):
 # ========================================
 
 class BlogPage(Page):
+    template = "blog/draft_page.html"
 
     main_image = models.ForeignKey(
         get_image_model_string(),

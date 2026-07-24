@@ -26,11 +26,11 @@ def render_blocks(blocks):
     return mark_safe('\n'.join(html_parts))
 
 
-@register.inclusion_tag('blog/public/_block.html', takes_context=False)
+@register.simple_tag
 def render_single_block(block):
     """ردر یک بلاک واحد - برای استفاده در حلقه"""
     html = _render_single_block(block)
-    return {'block_html': html}
+    return mark_safe(html)
 
 
 def _render_single_block(block):
